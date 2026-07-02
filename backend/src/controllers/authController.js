@@ -30,20 +30,37 @@ const signup = async (req, res) => {
 };
 const login = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, password } = req.body;
 
-        const storedEmail = "gokul@gmail.com";
+        const query = "SELECT * FROM users WHERE email = $1";
 
-        if (email !== storedEmail) {
+        const result = await pool.query(query, [email]);
+
+        if (result.rows.length === 0) {
             return res.status(400).json({
                 message: "Invalid email"
             });
         }
 
+        const user = result.rows[0];
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: "Invalid password"
+            });
+        }
+
         const token = jwt.sign(
-            { email: storedEmail },
-            "mysecretkey",
-            { expiresIn: "1h" }
+            {
+                id: user.id,
+                email: user.email
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1h"
+            }
         );
 
         res.status(200).json({
@@ -57,5 +74,4 @@ const login = async (req, res) => {
         });
     }
 };
-
 module.exports = { signup, login };
