@@ -1,19 +1,25 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const pool = require("../config/db");
 const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        const query = `
+            INSERT INTO users (name, email, password)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, email, created_at;
+        `;
+
+        const values = [name, email, hashedPassword];
+
+        const result = await pool.query(query, values);
+
         res.status(201).json({
             message: "User registered successfully",
-            user: {
-                name,
-                email,
-                password: hashedPassword
-            }
+            user: result.rows[0]
         });
 
     } catch (error) {
@@ -22,7 +28,6 @@ const signup = async (req, res) => {
         });
     }
 };
-
 const login = async (req, res) => {
     try {
         const { email } = req.body;
