@@ -5,9 +5,9 @@ const app = express();
 app.use(express.json());
 
 const authRoutes = require("./routes/authRoutes");
-
+const projectRoutes = require("./routes/projectRoutes");
 app.use("/api/auth", authRoutes);
-
+app.use("/api/projects", projectRoutes);
 app.get("/", (req, res) => {
   res.send("Backend running successfully");
 });
