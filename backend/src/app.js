@@ -8,11 +8,13 @@ const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const buildingRoutes = require("./routes/buildingRoutes");
 const floorRoutes = require("./routes/floorRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/buildings", buildingRoutes);
 app.use("/api/floors", floorRoutes);
+app.use("/api/upload", uploadRoutes);
 app.get("/", (req, res) => {
   res.send("Backend running successfully");
 });
