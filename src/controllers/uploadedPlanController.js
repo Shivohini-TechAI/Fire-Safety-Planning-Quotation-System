@@ -23,24 +23,57 @@ async function getUploadedPlans(req, res) {
 
 async function createUploadedPlan(req, res) {
   try {
-    const { fileName } = req.body;
+    const { fileName, quotationId } = req.body;
+    const uploadedFile = req.file;
 
-    if (!fileName) {
+    if (!uploadedFile && (!fileName || typeof fileName !== "string" || fileName.trim() === "")) {
       return res.status(400).json({
         success: false,
-        message: "fileName is required",
+        message: "A plan file or fileName is required",
       });
     }
 
+    const normalizedQuotationId = quotationId ? Number(quotationId) : null;
+
+    if (quotationId !== undefined && quotationId !== null && quotationId !== "" && !Number.isInteger(normalizedQuotationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "quotationId must be a valid integer",
+      });
+    }
+
+    const storedFileName = uploadedFile
+      ? uploadedFile.filename
+      : fileName;
+
     const uploadedPlan = await prisma.uploadedPlan.create({
       data: {
-        fileName,
+        fileName: storedFileName,
+        ...(normalizedQuotationId
+          ? {
+              quotation: {
+                connect: {
+                  id: normalizedQuotationId,
+                },
+              },
+            }
+          : {}),
       },
     });
 
     res.status(201).json({
       success: true,
-      data: uploadedPlan,
+      data: {
+        ...uploadedPlan,
+        uploadedFile: uploadedFile
+          ? {
+              originalName: uploadedFile.originalname,
+              storedName: uploadedFile.filename,
+              size: uploadedFile.size,
+              path: uploadedFile.path,
+            }
+          : null,
+      },
     });
   } catch (error) {
     res.status(500).json({

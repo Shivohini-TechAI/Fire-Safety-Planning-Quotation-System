@@ -4,16 +4,15 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 model Equipment {
-  id          Int      @id @default(autoincrement())
-  name        String
-  type        String
-  price       Float
-  quantity    Int
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String
+  price     Float
+  quantity  Int
+  createdAt DateTime @default(now())
 }
 
 model Quotation {
@@ -25,6 +24,9 @@ model Quotation {
   maintenanceCost  Float
   totalCost        Float
   createdAt        DateTime @default(now())
+
+  reports       Report[]
+  uploadedPlans UploadedPlan[]
 }
 
 model Report {
@@ -32,10 +34,16 @@ model Report {
   reportName  String
   description String
   createdAt   DateTime @default(now())
+
+  quotationId Int?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id])
 }
 
 model UploadedPlan {
-  id          Int      @id @default(autoincrement())
-  fileName    String
-  uploadedAt  DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  fileName   String
+  uploadedAt DateTime @default(now())
+
+  quotationId Int?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id])
 }

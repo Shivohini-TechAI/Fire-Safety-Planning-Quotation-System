@@ -8,6 +8,14 @@ const { parseIdParam, validateItems } = require("../utils/validation");
 async function calculateQuotationPreview(req, res) {
   try {
     const { projectName, items } = req.body;
+
+    if (!projectName || typeof projectName !== "string" || projectName.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "projectName is required",
+      });
+    }
+
     const validationError = validateItems(items);
 
     if (validationError) {
@@ -38,7 +46,7 @@ async function createQuotation(req, res) {
   try {
     const { projectName, items } = req.body;
 
-    if (!projectName) {
+    if (!projectName || typeof projectName !== "string" || projectName.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "projectName is required",
@@ -71,6 +79,11 @@ async function createQuotation(req, res) {
       data: {
         reportName: `Quotation Report - ${projectName}`,
         description: buildReportDescription(quotation),
+        quotation: {
+          connect: {
+            id: quotation.id,
+          },
+        },
       },
     });
 

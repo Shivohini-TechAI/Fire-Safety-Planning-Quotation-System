@@ -23,12 +23,28 @@ async function getReports(req, res) {
 
 async function createReport(req, res) {
   try {
-    const { reportName, description } = req.body;
+    const { reportName, description, quotationId } = req.body;
 
-    if (!reportName || !description) {
+    if (!reportName || typeof reportName !== "string" || reportName.trim() === "") {
       return res.status(400).json({
         success: false,
-        message: "reportName and description are required",
+        message: "reportName is required",
+      });
+    }
+
+    if (!description || typeof description !== "string" || description.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "description is required",
+      });
+    }
+
+    const normalizedQuotationId = quotationId ? Number(quotationId) : null;
+
+    if (quotationId !== undefined && quotationId !== null && quotationId !== "" && !Number.isInteger(normalizedQuotationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "quotationId must be a valid integer",
       });
     }
 
@@ -36,6 +52,15 @@ async function createReport(req, res) {
       data: {
         reportName,
         description,
+        ...(normalizedQuotationId
+          ? {
+              quotation: {
+                connect: {
+                  id: normalizedQuotationId,
+                },
+              },
+            }
+          : {}),
       },
     });
 

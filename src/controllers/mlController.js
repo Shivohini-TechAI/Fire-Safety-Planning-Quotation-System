@@ -7,7 +7,7 @@ async function processMlResult(req, res) {
   try {
     const { projectName, recommendedEquipment } = req.body;
 
-    if (!projectName) {
+    if (!projectName || typeof projectName !== "string" || projectName.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "projectName is required",
@@ -21,6 +21,15 @@ async function processMlResult(req, res) {
       return res.status(400).json({
         success: false,
         message: "recommendedEquipment must be a non-empty array",
+      });
+    }
+
+    const hasValidItems = recommendedEquipment.every((item) => item && typeof item === "object" && typeof item.equipmentName === "string" && item.equipmentName.trim() !== "" && Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0);
+
+    if (!hasValidItems) {
+      return res.status(400).json({
+        success: false,
+        message: "Each recommended equipment item must have a valid equipmentName and positive quantity",
       });
     }
 
@@ -81,6 +90,11 @@ async function processMlResult(req, res) {
       data: {
         reportName: `ML Fire Safety Report - ${projectName}`,
         description: buildReportDescription(quotation),
+        quotation: {
+          connect: {
+            id: quotation.id,
+          },
+        },
       },
     });
 
