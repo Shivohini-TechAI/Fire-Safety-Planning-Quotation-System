@@ -1,31 +1,24 @@
 import cv2
-import numpy as np
+import os
 
-TARGET_SIZE = 640
+input_image = "member5-cv/data/processed/floorplan_page_1.png"
+output_image = "member5-cv/data/processed/floorplan_clean.png"
 
-def preprocess_from_bytes(img_bytes: bytes):
-    nparr = np.frombuffer(img_bytes, np.uint8)
+image = cv2.imread(input_image)
 
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    if img is None:
-        raise ValueError("Could not decode image")
+blur = cv2.GaussianBlur(gray, (3,3), 0)
 
-    img_resized = cv2.resize(img, (TARGET_SIZE, TARGET_SIZE))
+thresh = cv2.adaptiveThreshold(
+    blur,
+    255,
+    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    cv2.THRESH_BINARY,
+    11,
+    2
+)
 
-    gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
+cv2.imwrite(output_image, thresh)
 
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    thresh = cv2.adaptiveThreshold(
-        blurred,
-        255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY,
-        11,
-        2
-    )
-
-    processed = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
-
-    return processed
+print("✅ Clean image saved!")
