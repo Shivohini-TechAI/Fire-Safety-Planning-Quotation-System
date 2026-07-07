@@ -23,6 +23,7 @@ model Quotation {
   gst              Float
   maintenanceCost  Float
   totalCost        Float
+  breakdown        Json?
   createdAt        DateTime @default(now())
 
   reports       Report[]
