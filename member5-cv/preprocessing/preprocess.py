@@ -1,24 +1,29 @@
 import cv2
-import os
+import numpy as np
 
-input_image = "member5-cv/data/processed/floorplan_page_1.png"
-output_image = "member5-cv/data/processed/floorplan_clean.png"
 
-image = cv2.imread(input_image)
+def preprocess_from_bytes(img_bytes):
+    """
+    Convert uploaded image bytes into a preprocessed OpenCV image.
+    """
 
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    nparr = np.frombuffer(img_bytes, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-blur = cv2.GaussianBlur(gray, (3,3), 0)
+    if image is None:
+        raise ValueError("Could not decode uploaded image.")
 
-thresh = cv2.adaptiveThreshold(
-    blur,
-    255,
-    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    cv2.THRESH_BINARY,
-    11,
-    2
-)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-cv2.imwrite(output_image, thresh)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
 
-print("✅ Clean image saved!")
+    thresh = cv2.adaptiveThreshold(
+        blur,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11,
+        2,
+    )
+
+    return thresh
