@@ -1,5 +1,6 @@
-// Upload Controller
+const pool = require("../config/db");
 
+// Upload Controller
 const uploadFile = async (req, res) => {
     try {
         // Check if file exists
@@ -10,10 +11,19 @@ const uploadFile = async (req, res) => {
             });
         }
 
-        // Send success response
-        res.status(200).json({
+        // Save uploaded file information in database
+        const result = await pool.query(
+            `INSERT INTO "UploadedPlan" ("fileName")
+             VALUES ($1)
+             RETURNING *`,
+            [req.file.filename]
+        );
+
+        // Success response
+        res.status(201).json({
             success: true,
             message: "File uploaded successfully",
+            uploadedPlan: result.rows[0],
             file: {
                 originalName: req.file.originalname,
                 fileName: req.file.filename,
@@ -24,6 +34,8 @@ const uploadFile = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(error);
+
         res.status(500).json({
             success: false,
             message: error.message,
