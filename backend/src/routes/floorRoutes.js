@@ -4,6 +4,8 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 
+const authorizeRole = require("../middleware/authorizeRole");
+
 const {
     createFloor,
     getFloors,
@@ -14,14 +16,14 @@ const {
 
 router.use(verifyToken);
 
-router.post("/", createFloor);
+router.post("/", authorizeRole("admin"), createFloor);
 
 router.get("/", getFloors);
 
 router.get("/:id", getFloorById);
 
-router.put("/:id", updateFloor);
+router.put("/:id", authorizeRole("admin"), updateFloor);
 
-router.delete("/:id", deleteFloor);
+router.delete("/:id", authorizeRole("admin"), deleteFloor);
 
 module.exports = router;

@@ -4,6 +4,8 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 
+const authorizeRole = require("../middleware/authorizeRole");
+
 const {
     createProject,
     getProjects,
@@ -14,14 +16,14 @@ const {
 
 router.use(verifyToken);
 
-router.post("/", createProject);
+router.post("/", authorizeRole("admin"), createProject);
 
 router.get("/", getProjects);
 
 router.get("/:id", getProjectById);
 
-router.put("/:id", updateProject);
+router.put("/:id", authorizeRole("admin"), updateProject);
 
-router.delete("/:id", deleteProject);
+router.delete("/:id", authorizeRole("admin"), deleteProject);
 
 module.exports = router;
