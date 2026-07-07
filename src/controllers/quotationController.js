@@ -1,7 +1,7 @@
 const PDFDocument = require("pdfkit");
 const prisma = require("../config/prisma");
 const { calculateQuotation } = require("../services/pricingService");
-const { writeQuotationPdf } = require("../services/pdfService");
+const { parseBreakdownFromDescription, writeQuotationPdf } = require("../services/pdfService");
 const { buildReportDescription } = require("../services/reportService");
 const { parseIdParam, validateItems } = require("../utils/validation");
 
@@ -72,13 +72,17 @@ async function createQuotation(req, res) {
         gst: totals.gst,
         maintenanceCost: totals.maintenanceCost,
         totalCost: totals.totalCost,
+        breakdown: totals.breakdown,
       },
     });
 
     const report = await prisma.report.create({
       data: {
         reportName: `Quotation Report - ${projectName}`,
-        description: buildReportDescription(quotation),
+        description: buildReportDescription({
+          ...quotation,
+          breakdown: totals.breakdown,
+        }),
         quotation: {
           connect: {
             id: quotation.id,
@@ -185,15 +189,35 @@ async function downloadQuotationPdf(req, res) {
       });
     }
 
+    const downloadTimestamp = Date.now();
+
+    const report = await prisma.report.findFirst({
+      where: {
+        quotationId,
+      },
+    });
+
+    const breakdown = Array.isArray(quotation.breakdown) && quotation.breakdown.length > 0
+      ? quotation.breakdown
+      : report?.description
+        ? parseBreakdownFromDescription(report.description)
+        : [];
+
     res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=quotation-${quotation.id}.pdf`
+      `attachment; filename=quotation-${quotation.id}-${downloadTimestamp}.pdf`
     );
 
     const doc = new PDFDocument({ margin: 50 });
     doc.pipe(res);
-    writeQuotationPdf(doc, quotation);
+    writeQuotationPdf(doc, {
+      ...quotation,
+      breakdown,
+    });
     doc.end();
   } catch (error) {
     res.status(500).json({
