@@ -1,0 +1,2 @@
+{"timestamp": "2026-07-06T06:02:33.599525+00:00", "client_id": "C-TEST", "floor_plan_id": "FP-TEST-01", "space_id": 4, "reason": "Area 5.0 sqft is below the minimum plausible size (10.0 sqft) \u2014 likely a false detection.", "severity": "high"}
+{"timestamp": "2026-07-06T06:02:33.599525+00:00", "client_id": "C-TEST", "floor_plan_id": "FP-TEST-01", "space_id": 4, "reason": "Detection confidence 0.3 is below threshold (0.5) \u2014 treat with caution.", "severity": "medium"}
