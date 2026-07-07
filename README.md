@@ -1,1 +1,0 @@
-# Fire-Safety-Planning-Quotation-System
