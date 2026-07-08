@@ -1,31 +1,29 @@
 import cv2
 import numpy as np
 
-TARGET_SIZE = 640
 
-def preprocess_from_bytes(img_bytes: bytes):
+def preprocess_from_bytes(img_bytes):
+    """
+    Convert uploaded image bytes into a preprocessed OpenCV image.
+    """
+
     nparr = np.frombuffer(img_bytes, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("Could not decode uploaded image.")
 
-    if img is None:
-        raise ValueError("Could not decode image")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    img_resized = cv2.resize(img, (TARGET_SIZE, TARGET_SIZE))
-
-    gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
-
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
 
     thresh = cv2.adaptiveThreshold(
-        blurred,
+        blur,
         255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY,
         11,
-        2
+        2,
     )
 
-    processed = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
-
-    return processed
+    return thresh

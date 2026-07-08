@@ -1,7 +1,7 @@
-path: .
+path: /Users/rajeshwari/Projects/Fire-Safety-Planning-Quotation-System/member5-cv
+
 train: data/annotated/train/images
-val: data/annotated/val/images
-test: data/annotated/test/images
+val: data/annotated/train/images
 
 nc: 7
 
