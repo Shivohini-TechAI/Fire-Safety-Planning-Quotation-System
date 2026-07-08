@@ -68,12 +68,41 @@ function buildQuotationBreakdownRows(quotation) {
   }
 
   rows.push(
-    { type: "summary", title: "Equipment Cost", amount: quotation.equipmentCost },
-    { type: "summary", title: "Installation Cost", amount: quotation.installationCost },
-    { type: "summary", title: "Maintenance Cost", amount: quotation.maintenanceCost },
-    { type: "summary", title: "GST", amount: quotation.gst },
-    { type: "total", title: "Total Estimated Cost", amount: quotation.totalCost }
-  );
+  {
+    type: "subtotal",
+    title: "Equipment Subtotal",
+    amount: quotation.equipmentCost,
+  },
+
+  {
+    type: "section",
+    title: "Tax & Additional Charges",
+  },
+
+  {
+    type: "summary",
+    title: "Installation Cost (10%)",
+    amount: quotation.installationCost,
+  },
+
+  {
+    type: "summary",
+    title: "Maintenance Cost (5%)",
+    amount: quotation.maintenanceCost,
+  },
+
+  {
+    type: "summary",
+    title: "GST (18%)",
+    amount: quotation.gst,
+  },
+
+  {
+    type: "total",
+    title: "Grand Total",
+    amount: quotation.totalCost,
+  }
+);
 
   return rows;
 }
@@ -139,20 +168,69 @@ function writeQuotationPdf(doc, quotation) {
 
   let currentY = tableTop + rowHeight;
   rows.forEach((row, index) => {
-    const fillColor = row.type === "total" ? "#fef3c7" : index % 2 === 0 ? "#ffffff" : "#f9fbfd";
-    const strokeColor = row.type === "total" ? "#f59e0b" : "#e5e7eb";
-    doc.roundedRect(margin, currentY, contentWidth, rowHeight, 3).fillAndStroke(fillColor, strokeColor);
-    doc.fillColor(row.type === "total" ? "#92400e" : "#374151").font(row.type === "total" ? "Helvetica-Bold" : "Helvetica").fontSize(10);
-    doc.text(row.title, margin + 10, currentY + 8);
-    if (row.type === "item") {
-      doc.font("Helvetica").fontSize(9).fillColor("#6b7280");
-      doc.text(row.detail, margin + 10, currentY + 18, { width: firstColWidth - 20 });
-      doc.fillColor("#374151").font("Helvetica").fontSize(10);
-    }
-    doc.text(formatCurrency(row.amount), margin + firstColWidth + 10, currentY + 8);
-    currentY += rowHeight;
-  });
+    let fillColor = index % 2 === 0 ? "#ffffff" : "#f9fbfd";
+    let strokeColor = "#e5e7eb";
+    let textColor = "#374151";
+    let font = "Helvetica";
 
+    if (row.type === "subtotal") {
+      fillColor = "#ecfdf5";
+      strokeColor = "#86efac";
+      textColor = "#166534";
+      font = "Helvetica-Bold";
+    }
+
+    if (row.type === "section") {
+      fillColor = "#dbeafe";
+      strokeColor = "#93c5fd";
+      textColor = "#1e40af";
+      font = "Helvetica-Bold";
+    }
+
+    if (row.type === "total") {
+      fillColor = "#fef3c7";
+      strokeColor = "#f59e0b";
+      textColor = "#92400e";
+      font = "Helvetica-Bold";
+    }
+
+    doc
+      .roundedRect(margin, currentY, contentWidth, rowHeight, 3)
+      .fillAndStroke(fillColor, strokeColor);
+
+    doc
+      .fillColor(textColor)
+      .font(font)
+      .fontSize(10);
+
+    doc.text(row.title, margin + 10, currentY + 8);
+
+    if (row.type === "item") {
+      doc
+        .font("Helvetica")
+        .fontSize(9)
+        .fillColor("#6b7280");
+
+      doc.text(row.detail, margin + 10, currentY + 18, {
+         width: firstColWidth - 20,
+      });
+
+      doc
+        .fillColor(textColor)
+        .font(font)
+        .fontSize(10);
+    }
+
+    if (row.type !== "section") {
+      doc.text(
+        formatCurrency(row.amount),
+        margin + firstColWidth + 10,
+        currentY + 8
+    );
+}
+
+currentY += rowHeight;
+});
   const notesY = currentY + rowHeight + 30;
   doc.roundedRect(margin, notesY, contentWidth, 90, 6).fillAndStroke("#fcfdff", "#e5e7eb");
   doc.fillColor("#111827").font("Helvetica-Bold").fontSize(11).text("Notes", margin + 12, notesY + 12);

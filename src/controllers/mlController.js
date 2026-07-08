@@ -1,11 +1,12 @@
 const prisma = require("../config/prisma");
+const { buildRecommendedEquipmentItems } = require("../services/mlQuotationService");
 const { calculateQuotation } = require("../services/pricingService");
 const { buildReportDescription } = require("../services/reportService");
 const { validateItems } = require("../utils/validation");
 
 async function processMlResult(req, res) {
   try {
-    const { projectName, recommendedEquipment } = req.body;
+    const { projectName, recommendedEquipment, detections } = req.body;
 
     if (!projectName || typeof projectName !== "string" || projectName.trim() === "") {
       return res.status(400).json({
@@ -14,17 +15,20 @@ async function processMlResult(req, res) {
       });
     }
 
-    if (
-      !Array.isArray(recommendedEquipment) ||
-      recommendedEquipment.length === 0
-    ) {
+    const mappedItems = buildRecommendedEquipmentItems({
+      projectName,
+      recommendedEquipment,
+      detections,
+    });
+
+    if (!Array.isArray(mappedItems) || mappedItems.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "recommendedEquipment must be a non-empty array",
+        message: "No recommended equipment could be derived from the ML result",
       });
     }
 
-    const hasValidItems = recommendedEquipment.every((item) => item && typeof item === "object" && typeof item.equipmentName === "string" && item.equipmentName.trim() !== "" && Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0);
+    const hasValidItems = mappedItems.every((item) => item && typeof item === "object" && typeof item.equipmentName === "string" && item.equipmentName.trim() !== "" && Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0);
 
     if (!hasValidItems) {
       return res.status(400).json({
@@ -33,7 +37,7 @@ async function processMlResult(req, res) {
       });
     }
 
-    const equipmentNames = recommendedEquipment.map((item) => item.equipmentName);
+    const equipmentNames = mappedItems.map((item) => item.equipmentName);
 
     const equipmentList = await prisma.equipment.findMany({
       where: {
@@ -53,7 +57,7 @@ async function processMlResult(req, res) {
       });
     }
 
-    const items = recommendedEquipment.map((item) => {
+    const items = mappedItems.map((item) => {
       const equipment = equipmentList.find(
         (entry) => entry.name === item.equipmentName
       );
@@ -83,13 +87,17 @@ async function processMlResult(req, res) {
         gst: totals.gst,
         maintenanceCost: totals.maintenanceCost,
         totalCost: totals.totalCost,
+        breakdown: totals.breakdown,
       },
     });
 
     const report = await prisma.report.create({
       data: {
         reportName: `ML Fire Safety Report - ${projectName}`,
-        description: buildReportDescription(quotation),
+        description: buildReportDescription({
+          ...quotation,
+          breakdown: totals.breakdown,
+        }),
         quotation: {
           connect: {
             id: quotation.id,
@@ -104,6 +112,7 @@ async function processMlResult(req, res) {
         quotation,
         report,
         breakdown: totals.breakdown,
+        derivedEquipment: mappedItems,
       },
     });
   } catch (error) {

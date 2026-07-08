@@ -9,10 +9,23 @@ function roundMoney(value) {
 }
 
 async function calculateQuotation(items) {
-  const normalizedItems = items.map((item) => ({
-    equipmentId: Number(item.equipmentId),
-    quantity: Number(item.quantity),
-  }));
+  const mergedItems = new Map();
+
+  items.forEach((item) => {
+    const equipmentId = Number(item.equipmentId);
+    const quantity = Number(item.quantity);
+
+    if (mergedItems.has(equipmentId)) {
+      mergedItems.get(equipmentId).quantity += quantity;
+    } else {
+      mergedItems.set(equipmentId, {
+        equipmentId,
+        quantity,
+      });
+    }
+});
+
+const normalizedItems = Array.from(mergedItems.values());
 
   const equipmentIds = normalizedItems.map((item) => item.equipmentId);
 
