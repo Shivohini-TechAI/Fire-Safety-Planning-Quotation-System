@@ -1,5 +1,8 @@
 const express = require("express");
 require("./config/db");
+
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 const app = express();
 
 app.use(express.json());
@@ -15,6 +18,9 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/buildings", buildingRoutes);
 app.use("/api/floors", floorRoutes);
 app.use("/api/upload", uploadRoutes);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.get("/", (req, res) => {
   res.send("Backend running successfully");
 });
