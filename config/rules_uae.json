@@ -1,0 +1,274 @@
+{
+  "_readme": "UAE Civil Defence Fire Safety Code of Practice. Adopts NFPA 13 (2019) for sprinklers, NFPA 72 (2019) for detection/alarm, NFPA 10 (2018) for extinguishers, NFPA 101 (2018) for means of egress. Your reference floor plan's pipe schedule was already written to NFPA-13, which confirms this standard family applies. All values are in sqft / ft. Set RULES_CONFIG_PATH=config/rules_uae.json in your .env to activate.",
+
+  "standard": "UAE Civil Defence Code of Practice (NFPA 13 / NFPA 72 / NFPA 10 / NFPA 101)",
+  "is_template": false,
+  "version": "1.0.0",
+  "last_updated": "2026-07-04",
+
+  "references": {
+    "sprinklers":    "NFPA 13-2019 §11.12  as adopted by UAE Civil Defence",
+    "detection":     "NFPA 72-2019 §17.6   as adopted by UAE Civil Defence",
+    "extinguishers": "NFPA 10-2018 §6.2    as adopted by UAE Civil Defence",
+    "egress":        "NFPA 101-2018 §7.9   as adopted by UAE Civil Defence",
+    "standpipe":     "UAE Civil Defence Code §4.7  fire hose reels"
+  },
+
+  "hazard_classification": {
+    "note": "Selects correct sprinkler coverage area per NFPA 13",
+    "office": "ordinary_hazard_group_1",
+    "retail": "ordinary_hazard_group_1",
+    "restaurant": "ordinary_hazard_group_1",
+    "school": "light_hazard",
+    "house": "light_hazard",
+    "flat": "light_hazard",
+    "apartment": "light_hazard",
+    "hotel": "light_hazard",
+    "warehouse": "ordinary_hazard_group_2"
+  },
+
+  "equipment_catalog": [
+    "sprinkler_pendant_concealed",
+    "sprinkler_upright",
+    "smoke_detector",
+    "heat_detector",
+    "fire_extinguisher_dry_powder",
+    "fire_extinguisher_co2",
+    "fire_hose_cabinet",
+    "fire_alarm_panel",
+    "emergency_light",
+    "exit_sign",
+    "zone_control_valve"
+  ],
+
+  "rules": [
+    {
+      "rule_id": "UAE-ROOM-SD-001",
+      "description": "Smoke detector in every room >=215 sqft (20m2). Coverage 900 sqft (84m2) per detector.",
+      "applies_to_space_type": "room",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 215 },
+      "action": {
+        "equipment": "smoke_detector",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 900 }
+      },
+      "standard_reference": "NFPA 72-2019 §17.6.3.1"
+    },
+    {
+      "rule_id": "UAE-ROOM-SPR-OFFICE-001",
+      "description": "Sprinkler (pendant concealed) in offices/retail - Ordinary Hazard Gr 1. Max 12.1m2 (130 sqft) per head.",
+      "applies_to_space_type": "room",
+      "applies_to_building_types": ["office", "retail", "restaurant"],
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 100 },
+      "action": {
+        "equipment": "sprinkler_pendant_concealed",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 130 }
+      },
+      "standard_reference": "NFPA 13-2019 §11.12.3.2"
+    },
+    {
+      "rule_id": "UAE-ROOM-SPR-LIGHT-001",
+      "description": "Sprinkler in light-hazard occupancies (schools, residential, hotels). Max 18.6m2 (200 sqft) per head.",
+      "applies_to_space_type": "room",
+      "applies_to_building_types": ["school", "house", "flat", "apartment", "hotel"],
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 100 },
+      "action": {
+        "equipment": "sprinkler_pendant_concealed",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 200 }
+      },
+      "standard_reference": "NFPA 13-2019 §11.12.3.1"
+    },
+    {
+      "rule_id": "UAE-ROOM-EXT-001",
+      "description": "ABC dry powder extinguisher. 1 per 139m2 (1500 sqft), max travel 23m. Any room >=215 sqft gets at least one.",
+      "applies_to_space_type": "room",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 215 },
+      "action": {
+        "equipment": "fire_extinguisher_dry_powder",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 1500 }
+      },
+      "standard_reference": "NFPA 10-2018 §6.2.1.1 / UAE CD §5.3"
+    },
+    {
+      "rule_id": "UAE-ROOM-HEAT-KIT-001",
+      "description": "Heat detector in kitchens where smoke detectors are unsuitable. 1 per 50m2 (540 sqft).",
+      "applies_to_space_type": "kitchen",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 50 },
+      "action": {
+        "equipment": "heat_detector",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 540 }
+      },
+      "standard_reference": "NFPA 72-2019 §17.6.5 / UAE CD §6.1"
+    },
+    {
+      "rule_id": "UAE-ROOM-CO2-KIT-001",
+      "description": "CO2 extinguisher in kitchen for Class B/C fire risk.",
+      "applies_to_space_type": "kitchen",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 50 },
+      "action": {
+        "equipment": "fire_extinguisher_co2",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 10-2018 §5.5 / UAE CD §5.4"
+    },
+    {
+      "rule_id": "UAE-ROOM-HEAT-STORE-001",
+      "description": "Heat detector in store rooms where dust/aerosols make smoke detectors unreliable.",
+      "applies_to_space_type": "store",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 50 },
+      "action": {
+        "equipment": "heat_detector",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 540 }
+      },
+      "standard_reference": "NFPA 72-2019 §17.6.5 / UAE CD §6.1"
+    },
+    {
+      "rule_id": "UAE-HALL-SD-001",
+      "description": "Smoke detector in corridors. NFPA 72 max spacing 9.1m (30 ft) between detectors.",
+      "applies_to_space_type": "hallway",
+      "applies_to_building_types": null,
+      "condition": { "field": "length_ft", "operator": ">=", "value": 10 },
+      "action": {
+        "equipment": "smoke_detector",
+        "qty_rule": { "type": "per_length_ft", "divisor": 30 }
+      },
+      "standard_reference": "NFPA 72-2019 §17.6.3.5"
+    },
+    {
+      "rule_id": "UAE-HALL-EMER-001",
+      "description": "Emergency lighting in all means of egress (corridors). UAE CD / NFPA 101 max 12m (40 ft) spacing.",
+      "applies_to_space_type": "hallway",
+      "applies_to_building_types": null,
+      "condition": { "field": "length_ft", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "emergency_light",
+        "qty_rule": { "type": "per_length_ft", "divisor": 40 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.9 / UAE CD §8.2"
+    },
+    {
+      "rule_id": "UAE-HALL-EXIT-SIGN-001",
+      "description": "Directional exit signs at intervals along corridors > 30 ft.",
+      "applies_to_space_type": "hallway",
+      "applies_to_building_types": null,
+      "condition": { "field": "length_ft", "operator": ">=", "value": 30 },
+      "action": {
+        "equipment": "exit_sign",
+        "qty_rule": { "type": "per_length_ft", "divisor": 50 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.10.1"
+    },
+    {
+      "rule_id": "UAE-STAIR-EMER-001",
+      "description": "Emergency lighting in every staircase. Fixed 1 per staircase, minimum.",
+      "applies_to_space_type": "staircase",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "emergency_light",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.9.2 / UAE CD §8.2"
+    },
+    {
+      "rule_id": "UAE-STAIR-EXIT-SIGN-001",
+      "description": "Illuminated exit sign at each staircase entry/exit.",
+      "applies_to_space_type": "staircase",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "exit_sign",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.10.1"
+    },
+    {
+      "rule_id": "UAE-STAIR-SPR-001",
+      "description": "Sprinklers in enclosed staircase shafts per NFPA 13. Light hazard rate (200 sqft/head).",
+      "applies_to_space_type": "staircase",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 50 },
+      "action": {
+        "equipment": "sprinkler_pendant_concealed",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 200 }
+      },
+      "standard_reference": "NFPA 13-2019 §8.15.6"
+    },
+    {
+      "rule_id": "UAE-EXIT-SIGN-001",
+      "description": "Illuminated exit sign at every detected exit point. Fixed 1 per exit.",
+      "applies_to_space_type": "exit",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "exit_sign",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.10.1.1"
+    },
+    {
+      "rule_id": "UAE-EXIT-EMER-001",
+      "description": "Emergency lighting at every exit discharge point.",
+      "applies_to_space_type": "exit",
+      "applies_to_building_types": null,
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "emergency_light",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 101-2018 §7.9.2.1"
+    },
+    {
+      "rule_id": "UAE-BLDG-FAP-001",
+      "description": "Fire alarm panel mandatory in all commercial, educational, and multi-unit residential buildings.",
+      "applies_to_space_type": "__building__",
+      "applies_to_building_types": null,
+      "condition": { "field": "num_floors", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "fire_alarm_panel",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "NFPA 72-2019 §10.3 / UAE CD §6.2"
+    },
+    {
+      "rule_id": "UAE-BLDG-ZCV-001",
+      "description": "Zone control valve - 1 per floor. Each floor of a sprinklered building has its own zone valve for isolation.",
+      "applies_to_space_type": "__building__",
+      "applies_to_building_types": null,
+      "condition": { "field": "num_floors", "operator": ">=", "value": 1 },
+      "action": {
+        "equipment": "zone_control_valve",
+        "qty_rule": { "type": "equals_field", "field": "num_floors" }
+      },
+      "standard_reference": "NFPA 13-2019 §8.16.1 / UAE CD §4.5"
+    },
+    {
+      "rule_id": "UAE-BLDG-FHC-001",
+      "description": "Fire hose cabinet (hose reel) in all commercial/educational buildings. UAE CD: 1 per 800m2 (8600 sqft) of floor area, minimum 1 per floor.",
+      "applies_to_space_type": "__building__",
+      "applies_to_building_types": ["office", "school", "retail", "hotel", "flat", "apartment", "restaurant", "warehouse"],
+      "condition": { "field": "total_area_sqft", "operator": ">=", "value": 1000 },
+      "action": {
+        "equipment": "fire_hose_cabinet",
+        "qty_rule": { "type": "per_area_sqft", "divisor": 8600 }
+      },
+      "standard_reference": "UAE CD §4.7 / NFPA 14-2019"
+    },
+    {
+      "rule_id": "UAE-BLDG-FHC-HIGHRISE-001",
+      "description": "Additional fire hose cabinets for high-rise (>4 floors / >15m). UAE CD mandates wet riser standpipe with hose connections on each floor.",
+      "applies_to_space_type": "__building__",
+      "applies_to_building_types": null,
+      "condition": { "field": "is_high_rise", "operator": "==", "value": true },
+      "action": {
+        "equipment": "fire_hose_cabinet",
+        "qty_rule": { "type": "equals_field", "field": "num_floors" }
+      },
+      "standard_reference": "UAE CD §4.7.2 / NFPA 14-2019 §7.3"
+    }
+  ]
+}

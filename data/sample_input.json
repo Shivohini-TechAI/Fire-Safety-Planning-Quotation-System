@@ -1,0 +1,18 @@
+{
+  "floor_plan_id": "FP-HPE-01",
+  "client_id": "C-HPE-001",
+  "building_type": "office",
+  "total_floors": 1,
+  "total_area_sqft": 9200,
+  "spaces": [
+    {"id": 1, "type": "room", "area_sqft": 410, "floor": 1, "confidence": 0.93},
+    {"id": 2, "type": "room", "area_sqft": 95, "floor": 1, "confidence": 0.88},
+    {"id": 3, "type": "room", "area_sqft": 140, "floor": 1, "confidence": 0.91},
+    {"id": 4, "type": "hallway", "length_ft": 62, "width_ft": 6, "floor": 1, "confidence": 0.85},
+    {"id": 5, "type": "staircase", "area_sqft": 90, "floor": 1, "confidence": 0.96},
+    {"id": 6, "type": "exit", "area_sqft": 20, "floor": 1, "confidence": 0.90},
+    {"id": 7, "type": "toilet", "area_sqft": 60, "floor": 1, "confidence": 0.80},
+    {"id": 8, "type": "store", "area_sqft": 45, "floor": 1, "confidence": 0.77},
+    {"id": 9, "type": "room", "area_sqft": 8, "floor": 1, "confidence": 0.40}
+  ]
+}

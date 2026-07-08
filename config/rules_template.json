@@ -1,0 +1,102 @@
+{
+  "_readme": "TEMPLATE FILE — the fire-code standard has not been confirmed for this client's country/region yet (your sample floor plan referenced NFPA-13 for sprinkler pipe sizing, but that may not apply to every client). Do NOT use these values for real recommendations. Once the applicable standard is known (e.g. NFPA 13/72, NBC 2016 Part 4, a local fire authority code), fill in every 'value' / 'divisor' field below, update 'standard', set 'is_template' to false, and either restart the server or call POST /rules/reload.",
+
+  "standard": "PENDING_CONFIRMATION",
+  "is_template": true,
+  "version": "0.1.0",
+  "last_updated": null,
+
+  "equipment_catalog": [
+    "smoke_detector",
+    "heat_detector",
+    "sprinkler_pendant_concealed",
+    "sprinkler_upright",
+    "fire_extinguisher_dry_powder",
+    "fire_extinguisher_co2",
+    "fire_hose_cabinet",
+    "fire_alarm_panel",
+    "emergency_light",
+    "exit_sign",
+    "zone_control_valve"
+  ],
+
+  "rules": [
+    {
+      "rule_id": "TEMPLATE-ROOM-001",
+      "applies_to_space_type": "room",
+      "condition": { "field": "area_sqft", "operator": ">=", "value": null },
+      "action": {
+        "equipment": "smoke_detector",
+        "qty_rule": { "type": "per_area_sqft", "divisor": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — set 'value' (minimum room area to trigger this rule) and 'divisor' (sqft of coverage per detector) once the standard is confirmed."
+    },
+    {
+      "rule_id": "TEMPLATE-ROOM-002",
+      "applies_to_space_type": "room",
+      "condition": { "field": "area_sqft", "operator": ">=", "value": null },
+      "action": {
+        "equipment": "fire_extinguisher_dry_powder",
+        "qty_rule": { "type": "fixed", "value": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — large rooms typically need at least one extinguisher; confirm the area threshold and quantity."
+    },
+    {
+      "rule_id": "TEMPLATE-HALLWAY-001",
+      "applies_to_space_type": "hallway",
+      "condition": { "field": "length_ft", "operator": ">=", "value": null },
+      "action": {
+        "equipment": "smoke_detector",
+        "qty_rule": { "type": "per_length_ft", "divisor": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — confirm maximum spacing between detectors along a corridor."
+    },
+    {
+      "rule_id": "TEMPLATE-STAIRCASE-001",
+      "applies_to_space_type": "staircase",
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 0 },
+      "action": {
+        "equipment": "emergency_light",
+        "qty_rule": { "type": "fixed", "value": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — every staircase generally needs emergency lighting; confirm count per landing/floor."
+    },
+    {
+      "rule_id": "TEMPLATE-EXIT-001",
+      "applies_to_space_type": "exit",
+      "condition": { "field": "area_sqft", "operator": ">=", "value": 0 },
+      "action": {
+        "equipment": "exit_sign",
+        "qty_rule": { "type": "fixed", "value": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — exits typically need a visible illuminated sign; usually 1 unless it's a double exit."
+    },
+    {
+      "rule_id": "TEMPLATE-BUILDING-001",
+      "applies_to_space_type": "__building__",
+      "condition": { "field": "num_floors", "operator": ">=", "value": null },
+      "action": {
+        "equipment": "fire_alarm_panel",
+        "qty_rule": { "type": "fixed", "value": 1 }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — building-wide rule, not tied to a single space. Confirm whether tall/large buildings need more than one panel."
+    },
+    {
+      "rule_id": "TEMPLATE-BUILDING-002",
+      "applies_to_space_type": "__building__",
+      "condition": { "field": "is_high_rise", "operator": "==", "value": null },
+      "action": {
+        "equipment": "fire_hose_cabinet",
+        "qty_rule": { "type": "fixed", "value": null }
+      },
+      "standard_reference": "TBD",
+      "notes": "Placeholder — your reference floor plan shows fire hose cabinets (FHC) being used; confirm at what building height/area these become mandatory and how many."
+    }
+  ]
+}

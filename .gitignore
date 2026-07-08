@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dataset files — keep folders, ignore actual data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Review-flag logs (generated at runtime)
+logs/*.log
+team-repo/
+tmp/
+*.exe
