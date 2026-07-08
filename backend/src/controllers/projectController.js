@@ -12,6 +12,18 @@ const createProject = async (req, res) => {
             status,
             user_id
         } = req.body;
+        
+        // Validate required fields
+if (
+    !project_name ||
+    !client_name ||
+    !building_name ||
+    !user_id
+) {
+    return res.status(400).json({
+        message: "Project name, client name, building name and user ID are required"
+    });
+}
 
         const query = `
             INSERT INTO projects
@@ -94,6 +106,17 @@ const updateProject = async (req, res) => {
             description,
             status
         } = req.body;
+
+        // Validate required fields
+if (
+    !project_name ||
+    !client_name ||
+    !building_name
+) {
+    return res.status(400).json({
+        message: "Project name, client name and building name are required"
+    });
+}
 
         const query = `
             UPDATE projects

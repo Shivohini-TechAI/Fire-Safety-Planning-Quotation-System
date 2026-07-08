@@ -12,6 +12,16 @@ const createBuilding = async (req, res) => {
             risk_level
         } = req.body;
 
+        if (
+    !project_id ||
+    !building_name ||
+    !building_type
+) {
+    return res.status(400).json({
+        message: "Project ID, building name and building type are required"
+    });
+}
+
         const result = await pool.query(
             `INSERT INTO buildings
             (project_id, building_name, building_type, total_area, number_of_floors, risk_level)
@@ -95,6 +105,15 @@ const updateBuilding = async (req, res) => {
             number_of_floors,
             risk_level
         } = req.body;
+
+        if (
+    !building_name ||
+    !building_type
+) {
+    return res.status(400).json({
+        message: "Building name and building type are required"
+    });
+}
 
         const result = await pool.query(
             `UPDATE buildings
