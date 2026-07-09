@@ -8,12 +8,22 @@ function roundMoney(value) {
   return Number(value.toFixed(2));
 }
 
-async function calculateQuotation(items) {
+async function calculateQuotation(input) {
+  const items = Array.isArray(input)
+    ? input
+    : Array.isArray(input?.items)
+      ? input.items
+      : [];
+
   const mergedItems = new Map();
 
   items.forEach((item) => {
-    const equipmentId = Number(item.equipmentId);
-    const quantity = Number(item.quantity);
+    const equipmentId = Number(item.equipmentId ?? item.id);
+    const quantity = Number(item.quantity ?? item.qty ?? 1);
+
+    if (!Number.isFinite(equipmentId) || equipmentId <= 0) {
+      return;
+    }
 
     if (mergedItems.has(equipmentId)) {
       mergedItems.get(equipmentId).quantity += quantity;
@@ -23,11 +33,21 @@ async function calculateQuotation(items) {
         quantity,
       });
     }
-});
+  });
 
-const normalizedItems = Array.from(mergedItems.values());
-
+  const normalizedItems = Array.from(mergedItems.values());
   const equipmentIds = normalizedItems.map((item) => item.equipmentId);
+
+  if (equipmentIds.length === 0) {
+    return {
+      equipmentCost: 0,
+      installationCost: 0,
+      maintenanceCost: 0,
+      gst: 0,
+      totalCost: 0,
+      breakdown: [],
+    };
+  }
 
   const equipmentList = await prisma.equipment.findMany({
     where: {

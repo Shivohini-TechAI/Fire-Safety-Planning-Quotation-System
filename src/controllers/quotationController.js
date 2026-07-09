@@ -1,9 +1,76 @@
 const PDFDocument = require("pdfkit");
 const prisma = require("../config/prisma");
 const { calculateQuotation } = require("../services/pricingService");
-const { parseBreakdownFromDescription, writeQuotationPdf } = require("../services/pdfService");
-const { buildReportDescription } = require("../services/reportService");
+const {
+  parseBreakdownFromDescription,
+  writeQuotationPdf,
+  writeTaxInvoicePdf,
+} = require("../services/pdfService");
+const { buildReportDescription, buildReportMetadata, buildReportTextDescription } = require("../services/reportService");
 const { parseIdParam, validateItems } = require("../utils/validation");
+
+async function createQuotationRecord({ projectName, totals, mlPayload }) {
+  const quotation = await prisma.$transaction(async (tx) => {
+    const createdQuotation = await tx.quotation.create({
+      data: {
+        projectName,
+        equipmentCost: totals.equipmentCost,
+        installationCost: totals.installationCost,
+        gst: totals.gst,
+        maintenanceCost: totals.maintenanceCost,
+        totalCost: totals.totalCost,
+        breakdown: totals.breakdown,
+      },
+    });
+
+    const reportData = buildReportDescription(
+      {
+        ...createdQuotation,
+        projectName,
+        breakdown: totals.breakdown,
+      },
+      {
+        projectName,
+        clientId: mlPayload?.client_id || mlPayload?.clientId || createdQuotation.id,
+        buildingType: mlPayload?.building_type || mlPayload?.buildingType || null,
+        complianceStandard: mlPayload?.compliance_standard || mlPayload?.complianceStandard || null,
+        rulesConfigured: mlPayload?.rules_configured || mlPayload?.rulesConfigured || [],
+        complianceScore: mlPayload?.compliance_score || mlPayload?.complianceScore || null,
+        reportDate: mlPayload?.reportDate || createdQuotation.createdAt,
+        equipmentRecommendations: mlPayload?.equipment_recommendations || mlPayload?.equipmentRecommendations || [],
+        reviewFlags: mlPayload?.review_flags || mlPayload?.reviewFlags || [],
+        ruleReferences: mlPayload?.rule_refs || mlPayload?.ruleReferences || [],
+        engineerRemarks: mlPayload?.engineerRemarks || `Assessment prepared for ${projectName}. Review the proposed equipment coverage before final approval.`,
+      }
+    );
+
+    await tx.report.create({
+      data: {
+        reportName: `Quotation Report - ${projectName}`,
+        description: `${buildReportTextDescription(reportData)}\n${buildReportMetadata(reportData)}`,
+        quotation: {
+          connect: {
+            id: createdQuotation.id,
+          },
+        },
+      },
+    });
+
+    return createdQuotation;
+  });
+
+  const report = await prisma.report.findFirst({
+    where: {
+      quotationId: quotation.id,
+    },
+  });
+
+  return {
+    quotation,
+    report,
+    breakdown: totals.breakdown,
+  };
+}
 
 async function calculateQuotationPreview(req, res) {
   try {
@@ -63,41 +130,11 @@ async function createQuotation(req, res) {
     }
 
     const totals = await calculateQuotation(items);
-
-    const quotation = await prisma.quotation.create({
-      data: {
-        projectName,
-        equipmentCost: totals.equipmentCost,
-        installationCost: totals.installationCost,
-        gst: totals.gst,
-        maintenanceCost: totals.maintenanceCost,
-        totalCost: totals.totalCost,
-        breakdown: totals.breakdown,
-      },
-    });
-
-    const report = await prisma.report.create({
-      data: {
-        reportName: `Quotation Report - ${projectName}`,
-        description: buildReportDescription({
-          ...quotation,
-          breakdown: totals.breakdown,
-        }),
-        quotation: {
-          connect: {
-            id: quotation.id,
-          },
-        },
-      },
-    });
+    const persistedQuotation = await createQuotationRecord({ projectName, totals });
 
     res.status(201).json({
       success: true,
-      data: {
-        quotation,
-        report,
-        breakdown: totals.breakdown,
-      },
+      data: persistedQuotation,
     });
   } catch (error) {
     res.status(400).json({
@@ -227,10 +264,10 @@ async function downloadQuotationPdf(req, res) {
     });
   }
 }
-
 module.exports = {
   calculateQuotationPreview,
   createQuotation,
+  createQuotationRecord,
   downloadQuotationPdf,
   getQuotationById,
   getQuotations,

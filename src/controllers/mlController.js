@@ -1,12 +1,11 @@
-const prisma = require("../config/prisma");
-const { buildRecommendedEquipmentItems } = require("../services/mlQuotationService");
 const { calculateQuotation } = require("../services/pricingService");
-const { buildReportDescription } = require("../services/reportService");
+const { buildNormalizedQuotationPayload } = require("../services/mlQuotationService");
+const { createQuotationRecord } = require("./quotationController");
 const { validateItems } = require("../utils/validation");
 
 async function processMlResult(req, res) {
   try {
-    const { projectName, recommendedEquipment, detections } = req.body;
+    const { projectName, recommendedEquipment, detections, equipment_recommendations } = req.body;
 
     if (!projectName || typeof projectName !== "string" || projectName.trim() === "") {
       return res.status(400).json({
@@ -15,60 +14,26 @@ async function processMlResult(req, res) {
       });
     }
 
-    const mappedItems = buildRecommendedEquipmentItems({
+    const normalizedQuotation = await buildNormalizedQuotationPayload({
       projectName,
       recommendedEquipment,
       detections,
+      equipment_recommendations,
     });
 
-    if (!Array.isArray(mappedItems) || mappedItems.length === 0) {
+    if (!normalizedQuotation.success || !Array.isArray(normalizedQuotation.items) || normalizedQuotation.items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No recommended equipment could be derived from the ML result",
+        message: normalizedQuotation.message || "No recommended equipment could be derived from the ML result",
       });
     }
 
-    const hasValidItems = mappedItems.every((item) => item && typeof item === "object" && typeof item.equipmentName === "string" && item.equipmentName.trim() !== "" && Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0);
-
-    if (!hasValidItems) {
-      return res.status(400).json({
-        success: false,
-        message: "Each recommended equipment item must have a valid equipmentName and positive quantity",
-      });
-    }
-
-    const equipmentNames = mappedItems.map((item) => item.equipmentName);
-
-    const equipmentList = await prisma.equipment.findMany({
-      where: {
-        name: {
-          in: equipmentNames,
-        },
-      },
-    });
-
-    if (equipmentList.length !== equipmentNames.length) {
-      const foundNames = new Set(equipmentList.map((equipment) => equipment.name));
-      const missingNames = equipmentNames.filter((name) => !foundNames.has(name));
-
-      return res.status(400).json({
-        success: false,
-        message: `Equipment not found: ${missingNames.join(", ")}`,
-      });
-    }
-
-    const items = mappedItems.map((item) => {
-      const equipment = equipmentList.find(
-        (entry) => entry.name === item.equipmentName
-      );
-
-      return {
-        equipmentId: equipment.id,
-        quantity: Number(item.quantity),
-      };
-    });
-
-    const validationError = validateItems(items);
+    const validationError = validateItems(
+      normalizedQuotation.items.map((item) => ({
+        equipmentId: item.equipmentId,
+        quantity: Number(item.quantity || 1),
+      }))
+    );
 
     if (validationError) {
       return res.status(400).json({
@@ -77,42 +42,36 @@ async function processMlResult(req, res) {
       });
     }
 
-    const totals = await calculateQuotation(items);
-
-    const quotation = await prisma.quotation.create({
-      data: {
-        projectName,
-        equipmentCost: totals.equipmentCost,
-        installationCost: totals.installationCost,
-        gst: totals.gst,
-        maintenanceCost: totals.maintenanceCost,
-        totalCost: totals.totalCost,
-        breakdown: totals.breakdown,
+    const totals = await calculateQuotation(normalizedQuotation);
+    const persistedQuotation = await createQuotationRecord({
+      projectName,
+      totals,
+      mlPayload: {
+        ...req.body,
+        equipment_recommendations: equipment_recommendations || [],
+        review_flags: req.body.review_flags || [],
+        rule_refs: req.body.rule_refs || [],
+        client_id: req.body.client_id || null,
+        building_type: req.body.building_type || null,
+        compliance_standard: req.body.compliance_standard || null,
+        compliance_score: req.body.compliance_score || null,
+        reportDate: req.body.reportDate || new Date().toISOString(),
+        engineerRemarks: req.body.engineerRemarks || undefined,
       },
     });
 
-    const report = await prisma.report.create({
-      data: {
-        reportName: `ML Fire Safety Report - ${projectName}`,
-        description: buildReportDescription({
-          ...quotation,
-          breakdown: totals.breakdown,
-        }),
-        quotation: {
-          connect: {
-            id: quotation.id,
-          },
-        },
-      },
-    });
-
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       data: {
-        quotation,
-        report,
-        breakdown: totals.breakdown,
-        derivedEquipment: mappedItems,
+        projectName,
+        normalizedItems: normalizedQuotation.items,
+        derivedEquipment: normalizedQuotation.items.map((item) => ({
+          equipmentName: item.equipmentName,
+          quantity: Number(item.quantity || 1),
+        })),
+        quotation: persistedQuotation.quotation,
+        report: persistedQuotation.report,
+        breakdown: persistedQuotation.breakdown,
       },
     });
   } catch (error) {
