@@ -249,7 +249,10 @@ async function downloadQuotationPdf(req, res) {
       `attachment; filename=quotation-${quotation.id}-${downloadTimestamp}.pdf`
     );
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({
+      margin: 50,
+      bufferPages: true,
+  });
     doc.pipe(res);
     writeQuotationPdf(doc, {
       ...quotation,

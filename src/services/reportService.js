@@ -26,9 +26,12 @@ function normalizeEquipmentRecommendations(value) {
     .map((item) => {
       if (typeof item === "string") {
         return {
+          item,
+          qty: 1,
+          zone: "Not specified",
+          rule_refs: [],
           name: item,
           quantity: 1,
-          zone: "Not specified",
           notes: "Derived from ML recommendation",
           ruleRefs: [],
         };
@@ -38,14 +41,18 @@ function normalizeEquipmentRecommendations(value) {
         return null;
       }
 
+      const quantity = toNumber(item.qty || item.quantity || item.count || item.recommendedQuantity || 1, 1);
       const ruleRefs = normalizeStringArray(
         item.ruleRefs || item.rule_refs || item.ruleReferences || item.rules || []
       );
 
       return {
-        name: item.item || item.name || item.equipmentName || item.equipment || "Equipment",
-        quantity: toNumber(item.qty || item.quantity || item.count || item.recommendedQuantity || 1, 1),
+        item: item.item || item.name || item.equipmentName || item.equipment || "Equipment",
+        qty: quantity,
         zone: item.zone || item.equipmentZone || item.location || item.zoneName || "Not specified",
+        rule_refs: ruleRefs,
+        name: item.item || item.name || item.equipmentName || item.equipment || "Equipment",
+        quantity,
         notes: item.notes || item.reason || "Derived from the assessed fire safety requirements",
         ruleRefs,
         reviewFlags: normalizeStringArray(item.reviewFlags || item.review_flags || []),
@@ -240,7 +247,10 @@ function buildReportTextDescription(report = {}) {
 
   const recommendations = Array.isArray(report.equipmentRecommendations) ? report.equipmentRecommendations : [];
   recommendations.forEach((item) => {
-    lines.push(`- ${item.name || "Equipment"} | Zone: ${item.zone || "General"} | Qty: ${item.quantity || 1}`);
+    const equipmentName = item.item || item.name || item.equipmentName || item.equipment || "Equipment";
+    const quantity = item.qty ?? item.quantity ?? item.count ?? 1;
+    const zone = item.zone || item.equipmentZone || item.location || item.zoneName || "General";
+    lines.push(`- ${equipmentName} | Zone: ${zone} | Qty: ${quantity}`);
   });
 
   lines.push("", "Review Flags:");

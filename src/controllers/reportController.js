@@ -137,7 +137,10 @@ async function downloadFireSafetyAssessmentPdf(req, res) {
       `attachment; filename=fire-safety-assessment-${report.id}-${downloadTimestamp}.pdf`
     );
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({
+      margin: 50,
+      bufferPages: true,
+    });
     let streamStarted = false;
 
     doc.on("pipe", () => {
