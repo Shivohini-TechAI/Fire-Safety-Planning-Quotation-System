@@ -20,6 +20,21 @@ async def detect(file: UploadFile = File(...)):
     detections = run_inference(img)
 
     return {
-        "status": "success",
-        "detections": detections
-    }
+    "floor_plan_id": "FP001",
+    "client_id": "CLIENT001",
+    "building_type": "office",
+    "total_floors": 1,
+    "total_area_sqft": None,
+    "spaces": [
+        {
+            "id": d["id"],
+            "type": d["type"],
+            "area_sqft": None,
+            "length_ft": None,
+            "width_ft": None,
+            "floor": d["floor"],
+            "confidence": d["confidence"]
+        }
+        for d in detections
+    ]
+}
