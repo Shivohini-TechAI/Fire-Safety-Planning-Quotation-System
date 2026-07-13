@@ -1,4 +1,7 @@
 const pool = require("../config/db");
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
 
 // Upload Controller
 const uploadFile = async (req, res) => {
@@ -19,19 +22,35 @@ const uploadFile = async (req, res) => {
             [req.file.filename]
         );
 
-        // Success response
-        res.status(201).json({
-            success: true,
-            message: "File uploaded successfully",
-            uploadedPlan: result.rows[0],
-            file: {
-                originalName: req.file.originalname,
-                fileName: req.file.filename,
-                filePath: req.file.path,
-                fileSize: req.file.size,
-                fileType: req.file.mimetype,
-            },
-        });
+        // Send uploaded file to ML API
+const formData = new FormData();
+
+formData.append(
+    "file",
+    fs.createReadStream(req.file.path)
+);
+
+const mlResponse = await axios.post(
+    "https://croak-snuff-refinery.ngrok-free.dev/detect",
+    formData,
+    {
+        headers: formData.getHeaders(),
+    }
+);
+
+ res.status(201).json({
+    success: true,
+    message: "File uploaded successfully",
+    uploadedPlan: result.rows[0],
+    file: {
+        originalName: req.file.originalname,
+        fileName: req.file.filename,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype,
+    },
+    detection: mlResponse.data,
+});
 
     } catch (error) {
         console.error(error);
