@@ -26,6 +26,8 @@ class Settings:
 
     ALLOWED_ORIGIN: str = os.getenv("ALLOWED_ORIGIN", "http://localhost:3000")
 
+    API_KEY: str = os.getenv("RULE_ENGINE_API_KEY", "")
+
     # Thresholds used by the false-detection validator (app/core/validator.py)
     MIN_VALID_AREA_SQFT: float = float(os.getenv("MIN_VALID_AREA_SQFT", 10))
     MAX_AREA_OVERSHOOT_RATIO: float = float(os.getenv("MAX_AREA_OVERSHOOT_RATIO", 2.0))

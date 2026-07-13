@@ -1,8 +1,9 @@
 """
 HTTP routes exposed to Member 3's Node.js backend.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.api.dependencies import verify_api_key
 from app.core.area_calculator import calculate_summary
 from app.core.deduplicator import deduplicate
 from app.core.response_builder import build_response
@@ -41,7 +42,7 @@ def get_rules():
     return _rules_info()
 
 
-@router.post("/rules/reload", response_model=RulesInfo)
+@router.post("/rules/reload", response_model=RulesInfo, dependencies=[Depends(verify_api_key)])
 def reload_rules():
     """Reload config/rules_template.json from disk without restarting the
     server — call this right after editing the rules file."""
@@ -50,7 +51,7 @@ def reload_rules():
     return _rules_info()
 
 
-@router.post("/recommend", response_model=RecommendationResponse)
+@router.post("/recommend", response_model=RecommendationResponse, dependencies=[Depends(verify_api_key)])
 def recommend(floor_plan: FloorPlanInput):
     floor_plan_dict = floor_plan.model_dump()
 
