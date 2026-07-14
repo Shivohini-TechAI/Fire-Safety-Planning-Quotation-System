@@ -33,7 +33,8 @@ async def detect(file: UploadFile = File(...)):
             "length_ft": None,
             "width_ft": None,
             "floor": d["floor"],
-            "confidence": d["confidence"]
+            "confidence": d["confidence"],
+            "bbox": d["bbox"]
         }
         for d in detections
     ]
