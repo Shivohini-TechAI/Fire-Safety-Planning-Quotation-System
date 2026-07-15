@@ -109,169 +109,15 @@ function buildQuotationBreakdownRows(quotation) {
 
 function writeQuotationPdf(doc, quotation) {
   const pageWidth = doc.page.width;
-  const pageHeight = doc.page.height;
   const margin = 50;
   const contentWidth = pageWidth - margin * 2;
 
-  doc.fillColor("#111827");
-  doc.font("Helvetica-Bold").fontSize(24).text("QUOTATION", margin, 40);
-  doc.font("Helvetica").fontSize(11).fillColor("#6b7280").text(
-    "Fire Safety Planning Quotation System",
-    margin,
-    70
-  );
-
-  doc.roundedRect(margin - 10, 30, contentWidth + 20, 80, 8).fillAndStroke(
-    "#f8fafc",
-    "#dbe3ea"
-  );
-  doc.fillColor("#0f4c81").font("Helvetica-Bold").fontSize(15).text(
-    "Professional Fire Safety Cost Estimate",
-    margin,
-    45
-  );
-
-  doc.fillColor("#374151").font("Helvetica").fontSize(10);
-  doc.text(`Quotation No: ${quotation.id}`, pageWidth - margin - 165, 45);
-  doc.text(`Project: ${quotation.projectName}`, pageWidth - margin - 165, 60);
-  doc.text(
-    `Date: ${new Date(quotation.createdAt).toLocaleDateString()}`,
-    pageWidth - margin - 165,
-    75
-  );
-  doc.text("Status: Draft", pageWidth - margin - 165, 90);
-
-  doc.moveTo(margin, 130).lineTo(pageWidth - margin, 130).strokeColor("#d1d5db").lineWidth(1).stroke();
-
-  doc.roundedRect(margin, 140, contentWidth, 70, 6).fillAndStroke("#f9fbfd", "#dbe3ea");
-  doc.fillColor("#111827").font("Helvetica-Bold").fontSize(12).text(
-    "Project Details",
-    margin + 12,
-    152
-  );
+  doc.y = 50;
   doc.font("Helvetica").fontSize(10).fillColor("#374151");
-  doc.text(`Client / Site: ${quotation.projectName}`, margin + 12, 172);
-  doc.text(`Reference ID: ${quotation.id}`, margin + 12, 187);
-  doc.text(`Issued On: ${new Date(quotation.createdAt).toLocaleDateString()}`, margin + 280, 172);
-  doc.text("Prepared For: Fire Safety Planning Team", margin + 280, 187);
-
-  const tableTop = 230;
-  const rowHeight = 30;
-  const firstColWidth = contentWidth * 0.7;
-
-  doc.roundedRect(margin, tableTop, contentWidth, rowHeight, 4).fillAndStroke("#e8f2fb", "#c7dced");
-  doc.fillColor("#0f4c81").font("Helvetica-Bold").fontSize(10);
-  doc.text("Item / Description", margin + 10, tableTop + 8);
-  doc.text("Amount", margin + firstColWidth + 10, tableTop + 8);
-
-  const rows = buildQuotationBreakdownRows(quotation);
-
-  let currentY = tableTop + rowHeight;
-  rows.forEach((row, index) => {
-    let fillColor = index % 2 === 0 ? "#ffffff" : "#f9fbfd";
-    let strokeColor = "#e5e7eb";
-    let textColor = "#374151";
-    let font = "Helvetica";
-
-    if (row.type === "subtotal") {
-      fillColor = "#ecfdf5";
-      strokeColor = "#86efac";
-      textColor = "#166534";
-      font = "Helvetica-Bold";
-    }
-
-    if (row.type === "section") {
-      fillColor = "#dbeafe";
-      strokeColor = "#93c5fd";
-      textColor = "#1e40af";
-      font = "Helvetica-Bold";
-    }
-
-    if (row.type === "total") {
-      fillColor = "#fef3c7";
-      strokeColor = "#f59e0b";
-      textColor = "#92400e";
-      font = "Helvetica-Bold";
-    }
-
-    doc
-      .roundedRect(margin, currentY, contentWidth, rowHeight, 3)
-      .fillAndStroke(fillColor, strokeColor);
-
-    doc
-      .fillColor(textColor)
-      .font(font)
-      .fontSize(10);
-
-    doc.text(row.title, margin + 10, currentY + 8);
-
-    if (row.type === "item") {
-      doc
-        .font("Helvetica")
-        .fontSize(9)
-        .fillColor("#6b7280");
-
-      doc.text(row.detail, margin + 10, currentY + 18, {
-         width: firstColWidth - 20,
-      });
-
-      doc
-        .fillColor(textColor)
-        .font(font)
-        .fontSize(10);
-    }
-
-    if (row.type !== "section") {
-      doc.text(
-        formatCurrency(row.amount),
-        margin + firstColWidth + 10,
-        currentY + 8
-    );
+  doc.text("Quotation PDF generation removed.", margin, doc.y);
+  renderFooters(doc, margin, contentWidth);
 }
 
-currentY += rowHeight;
-});
-  const notesY = currentY + rowHeight + 30;
-  doc.roundedRect(margin, notesY, contentWidth, 90, 6).fillAndStroke("#fcfdff", "#e5e7eb");
-  doc.fillColor("#111827").font("Helvetica-Bold").fontSize(11).text("Notes", margin + 12, notesY + 12);
-  doc.font("Helvetica").fontSize(10).fillColor("#4b5563");
-  doc.text(
-    "This quotation is prepared based on the requested scope and may be revised if project requirements change.",
-    margin + 12,
-    notesY + 35,
-    { width: contentWidth - 24 }
-  );
-  doc.text(
-    "Thank you for choosing Fire Safety Planning Quotation System.",
-    margin + 12,
-    notesY + 55,
-    { width: contentWidth - 24 }
-  );
-
-  const signY = notesY + 115;
-  doc.strokeColor("#d1d5db").lineWidth(1);
-  doc.moveTo(margin + 20, signY).lineTo(margin + 180, signY).stroke();
-  doc.font("Helvetica").fontSize(9).fillColor("#6b7280").text(
-    "Authorized Signature",
-    margin + 20,
-    signY + 8
-  );
-
-  doc.moveTo(pageWidth - margin - 180, signY).lineTo(pageWidth - margin - 20, signY).stroke();
-  doc.text(
-    "Client Confirmation",
-    pageWidth - margin - 180,
-    signY + 8
-  );
-
-  doc.moveTo(margin, pageHeight - 55).lineTo(pageWidth - margin, pageHeight - 55).strokeColor("#d1d5db").lineWidth(1).stroke();
-  doc.font("Helvetica").fontSize(9).fillColor("#6b7280").text(
-    "Generated by Fire Safety Planning Quotation System",
-    margin,
-    pageHeight - 40,
-    { align: "center", width: contentWidth }
-  );
-}
 function getFieldValue(source, keys) {
   const values = Array.isArray(keys) ? keys : [keys];
 
@@ -328,9 +174,12 @@ function normalizeRecommendations(value) {
   return normalizeArray(value).map((item) => {
     if (typeof item === "string") {
       return {
+        item,
+        qty: 1,
+        zone: "Not specified",
+        rule_refs: [],
         name: item,
         quantity: 1,
-        zone: "Not specified",
       };
     }
 
@@ -338,10 +187,18 @@ function normalizeRecommendations(value) {
       return null;
     }
 
+    const quantity = Number(getFieldValue(item, ["qty", "quantity", "count", "recommendedQuantity"]) || 1);
+    const equipmentName = getFieldValue(item, ["item", "name", "equipmentName", "equipment", "itemName"]) || "Equipment";
+    const zone = getFieldValue(item, ["zone", "equipmentZone", "location", "zoneName"]) || "Not specified";
+    const ruleRefs = normalizeArray(getFieldValue(item, ["rule_refs", "ruleRefs", "ruleReferences", "rules"]) || []);
+
     return {
-      name: getFieldValue(item, ["name", "equipmentName", "equipment", "itemName"]) || "Equipment",
-      quantity: Number(getFieldValue(item, ["quantity", "qty", "count", "recommendedQuantity"]) || 1),
-      zone: getFieldValue(item, ["zone", "equipmentZone", "location", "zoneName"]) || "Not specified",
+      item: equipmentName,
+      qty: quantity,
+      zone,
+      rule_refs: ruleRefs,
+      name: equipmentName,
+      quantity,
     };
   }).filter(Boolean);
 }
@@ -392,9 +249,11 @@ function normalizeRuleReferences(value) {
 
 function ensureSpace(doc, requiredHeight, marginBottom = 70) {
   const pageHeight = doc.page.height;
-  const bottomLimit = pageHeight - marginBottom;
+  return doc.y + requiredHeight > pageHeight - marginBottom;
+}
 
-  if (doc.y + requiredHeight > bottomLimit) {
+function beginSection(doc, requiredHeight, margin, contentWidth, marginBottom = 70) {
+  if (ensureSpace(doc, requiredHeight, marginBottom)) {
     doc.addPage();
     doc.y = 50;
   }
@@ -424,59 +283,173 @@ function drawFooter(doc, margin, contentWidth) {
     );
 }
 
+function renderFooters(doc, margin, contentWidth) {
+  if (typeof doc.bufferedPageRange === "function") {
+    const range = doc.bufferedPageRange();
+    for (let index = range.start; index < range.start + range.count; index += 1) {
+      doc.switchToPage(index);
+      drawFooter(doc, margin, contentWidth);
+    }
+    return;
+  }
+
+  drawFooter(doc, margin, contentWidth);
+}
+
+function formatEquipmentName(name) {
+  return String(name)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 function drawTable(doc, headers, rows, columnWidths, options = {}) {
   const margin = options.margin || 50;
-  const rowHeight = options.rowHeight || 22;
-  const headerHeight = rowHeight + 6;
+  const rowHeight = options.rowHeight || 24;
   const pageHeight = doc.page.height;
   const bottomPadding = options.bottomPadding || 70;
+  const contentWidth = options.contentWidth || doc.page.width - margin * 2;
   const headerFill = options.headerFill || "#e2e8f0";
   const borderColor = options.borderColor || "#d1d5db";
-  const contentWidth = options.contentWidth || doc.page.width - margin * 2;
-  const totalTableHeight = headerHeight + rows.length * rowHeight + 12;
-
-  ensureSpace(doc, totalTableHeight, bottomPadding);
+  const textColor = options.textColor || "#111827";
 
   let currentY = doc.y;
   const columnX = [];
   let runningX = margin;
+
   columnWidths.forEach((width) => {
     columnX.push(runningX);
     runningX += width;
   });
 
-  doc.roundedRect(margin, currentY, contentWidth, headerHeight, 3).fillAndStroke(headerFill, borderColor);
-  doc.fillColor("#0f4c81").font("Helvetica-Bold").fontSize(9);
-  headers.forEach((header, index) => {
-    doc.text(header, columnX[index] + 8, currentY + 7, { width: columnWidths[index] - 10 });
-  });
+  function drawHeader() {
+    let x = margin;
 
-  currentY += headerHeight;
-  doc.fillColor("#374151").font("Helvetica").fontSize(9);
-
-  rows.forEach((row, rowIndex) => {
-    const requiredHeight = rowHeight + 4;
-    if (currentY + requiredHeight > pageHeight - bottomPadding) {
-      doc.addPage();
-      doc.y = 50;
-      currentY = doc.y;
-      doc.roundedRect(margin, currentY, contentWidth, headerHeight, 3).fillAndStroke(headerFill, borderColor);
-      doc.fillColor("#0f4c81").font("Helvetica-Bold").fontSize(9);
-      headers.forEach((header, index) => {
-        doc.text(header, columnX[index] + 8, currentY + 7, { width: columnWidths[index] - 10 });
+    headers.forEach((header, index) => {
+      const width = columnWidths[index];
+      doc.fillColor(headerFill).rect(x, currentY, width, rowHeight).fill();
+      doc.strokeColor(borderColor).rect(x, currentY, width, rowHeight).stroke();
+      doc.fillColor(textColor).font("Helvetica-Bold").fontSize(10).text(String(header), x + 6, currentY + 6, {
+        width: width - 12,
+        align: "left",
       });
-      currentY += headerHeight;
-      doc.fillColor("#374151").font("Helvetica").fontSize(9);
+      x += width;
+    });
+
+    currentY += rowHeight;
+  }
+
+  if (ensureSpace(doc, rowHeight * 2, bottomPadding)) {
+    doc.addPage();
+    doc.y = 50;
+    currentY = doc.y;
+  }
+
+  drawHeader();
+
+  rows.forEach((row) => {
+    if (currentY + rowHeight > pageHeight - bottomPadding) {
+      doc.addPage();
+      currentY = 50;
+      doc.y = currentY;
+      drawHeader();
     }
 
-    doc.roundedRect(margin, currentY, contentWidth, rowHeight, 2).fillAndStroke(rowIndex % 2 === 0 ? "#ffffff" : "#f9fafb", borderColor);
+    let x = margin;
     row.forEach((cell, index) => {
-      doc.text(String(cell), columnX[index] + 8, currentY + 6, { width: columnWidths[index] - 10 });
+      const width = columnWidths[index];
+      doc.fillColor("#ffffff").rect(x, currentY, width, rowHeight).fill();
+      doc.strokeColor(borderColor).rect(x, currentY, width, rowHeight).stroke();
+      doc.fillColor(textColor).font("Helvetica").fontSize(9).text(cell != null ? String(cell) : "", x + 6, currentY + 6, {
+        width: width - 12,
+        align: "left",
+      });
+      x += width;
     });
+
     currentY += rowHeight;
   });
 
-  doc.y = currentY + 10;
+  doc.y = currentY + 12;
+}
+
+function writeQuotationPdf(doc, quotation) {
+  const pageWidth = doc.page.width;
+  const margin = 50;
+  const contentWidth = pageWidth - margin * 2;
+  const rows = buildQuotationBreakdownRows(quotation);
+  const createdAt = quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString() : "N/A";
+
+  doc.y = 50;
+
+  beginSection(doc, 110, margin, contentWidth);
+  const headerTop = doc.y;
+  doc.roundedRect(margin, headerTop, contentWidth, 92, 8).fillAndStroke("#f8fafc", "#dbe3ea");
+  doc.font("Helvetica-Bold").fontSize(24).fillColor("#0f4c81").text("QUOTATION", margin + 18, headerTop + 18);
+  doc.font("Helvetica").fontSize(10).fillColor("#6b7280").text("Fire Safety Planning Quotation System", margin + 18, headerTop + 54);
+  doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Professional Fire Safety Cost Estimate", margin + 18, headerTop + 72);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Quotation No: ${quotation.id}`, margin + 18, headerTop + 92);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Project: ${quotation.projectName || "Unnamed Project"}`, margin + 270, headerTop + 54);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Date: ${createdAt}`, margin + 270, headerTop + 72);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text("Status: Draft", margin + 270, headerTop + 92);
+  doc.y = headerTop + 118;
+
+  beginSection(doc, 90, margin, contentWidth);
+  const projectTop = doc.y;
+  doc.roundedRect(margin, projectTop, contentWidth, 84, 8).fillAndStroke("#f9fbfd", "#dbe3ea");
+  doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Project Details", margin + 16, projectTop + 14);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Client / Site: ${quotation.projectName || "Unnamed Project"}`, margin + 16, projectTop + 38);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Reference ID: ${quotation.id}`, margin + 16, projectTop + 56);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Issued On: ${createdAt}`, margin + 280, projectTop + 38);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text("Prepared For: Fire Safety Planning Team", margin + 280, projectTop + 56);
+  doc.y = projectTop + 96;
+
+  beginSection(doc, 90, margin, contentWidth);
+  doc.font("Helvetica-Bold").fontSize(13).fillColor("#111827").text("Quotation Table", margin, doc.y);
+  doc.moveDown(0.5);
+  drawTable(
+    doc,
+    ["Item / Description", "Amount"],
+    rows.map((row) => {
+      if (row.type === "item") {
+        return [row.title, formatCurrency(row.amount)];
+      }
+      if (row.type === "section") {
+        return [row.title, ""];
+      }
+      return [row.title, formatCurrency(row.amount)];
+    }),
+    [contentWidth * 0.72, contentWidth * 0.28],
+    {
+      margin,
+      contentWidth,
+      bottomPadding: 60,
+    }
+  );
+
+  beginSection(doc, 110, margin, contentWidth);
+  const totalTop = doc.y;
+  doc.roundedRect(margin, totalTop, contentWidth, 92, 8).fillAndStroke("#fcfdff", "#e5e7eb");
+  doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Cost Summary", margin + 16, totalTop + 14);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Equipment Subtotal: ${formatCurrency(quotation.equipmentCost)}`, margin + 16, totalTop + 38);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Installation Cost: ${formatCurrency(quotation.installationCost)}`, margin + 16, totalTop + 56);
+  doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`Maintenance Cost: ${formatCurrency(quotation.maintenanceCost)}`, margin + 16, totalTop + 74);
+  doc.font("Helvetica-Bold").fontSize(10).fillColor("#0f4c81").text(`Grand Total: ${formatCurrency(quotation.totalCost)}`, margin + 280, totalTop + 56);
+  doc.y = totalTop + 104;
+
+  beginSection(doc, 120, margin, contentWidth);
+  const notesTop = doc.y;
+  doc.roundedRect(margin, notesTop, contentWidth, 118, 8).fillAndStroke("#fcfdff", "#e5e7eb");
+  doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Notes", margin + 16, notesTop + 14);
+  doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text("This quotation is prepared based on the requested scope and may be revised if project requirements change.", margin + 16, notesTop + 40, { width: contentWidth - 32 });
+  doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text("Thank you for choosing Fire Safety Planning Quotation System.", margin + 16, notesTop + 62, { width: contentWidth - 32 });
+  doc.strokeColor("#d1d5db").lineWidth(1);
+  doc.moveTo(margin + 24, notesTop + 92).lineTo(margin + 180, notesTop + 92).stroke();
+  doc.font("Helvetica").fontSize(9).fillColor("#6b7280").text("Authorized Signature", margin + 24, notesTop + 100);
+  doc.moveTo(pageWidth - margin - 180, notesTop + 92).lineTo(pageWidth - margin - 24, notesTop + 92).stroke();
+  doc.font("Helvetica").fontSize(9).fillColor("#6b7280").text("Client Confirmation", pageWidth - margin - 180, notesTop + 100);
+  doc.y = notesTop + 128;
+
+  //renderFooters(doc, margin, contentWidth);
 }
 
 function writeFireSafetyAssessmentPdf(doc, report = {}) {
@@ -499,75 +472,77 @@ function writeFireSafetyAssessmentPdf(doc, report = {}) {
   const reportDate = getFieldValue(fallbackSource, ["reportDate", "report_date"]) || new Date().toISOString();
   const formattedDate = reportDate ? new Date(reportDate).toLocaleDateString() : "N/A";
 
-  doc.font("Helvetica").fontSize(10).fillColor("#374151");
   doc.y = 50;
+  doc.font("Helvetica").fontSize(10).fillColor("#374151");
 
-  doc.font("Helvetica-Bold").fontSize(18).fillColor("#111827").text("Fire Safety Planning Quotation System", { align: "left" });
+  beginSection(doc, 90, margin, contentWidth);
+  doc.font("Helvetica-Bold").fontSize(18).fillColor("#111827").text("Fire Safety Planning Quotation System", margin, doc.y);
   doc.moveDown(0.5);
-  doc.font("Helvetica-Bold").fontSize(24).fillColor("#0f4c81").text("Fire Safety Assessment Report");
+  doc.font("Helvetica-Bold").fontSize(24).fillColor("#0f4c81").text("Fire Safety Assessment Report", margin, doc.y);
   doc.moveDown(1.2);
 
-  const coverHeight = 170;
-  ensureSpace(doc, coverHeight, 70);
-  const coverTop = doc.y;
-  doc.roundedRect(margin, coverTop, contentWidth, coverHeight, 8).fillAndStroke("#f8fafc", "#dbe3ea");
-  doc.font("Helvetica-Bold").fontSize(13).fillColor("#0f4c81").text("Project Overview", margin + 18, coverTop + 16);
-  doc.font("Helvetica-Bold").fontSize(15).fillColor("#111827").text(projectName, margin + 18, coverTop + 48, { width: contentWidth - 36 });
-  doc.font("Helvetica").fontSize(11).fillColor("#374151");
-  doc.text(`Client ID: ${clientId}`, margin + 18, coverTop + 80);
-  doc.text(`Building Type: ${buildingType}`, margin + 18, coverTop + 102);
-  doc.text(`Report Date: ${formattedDate}`, margin + 18, coverTop + 124);
-  doc.text("Prepared from the latest assessment data and supporting recommendations.", margin + 18, coverTop + 146, { width: contentWidth - 36 });
-  doc.y = coverTop + coverHeight + 18;
+  beginSection(doc, 170, margin, contentWidth);
+  const overviewTop = doc.y;
+  doc.roundedRect(margin, overviewTop, contentWidth, 150, 8).fillAndStroke("#f8fafc", "#dbe3ea");
+  doc.font("Helvetica-Bold").fontSize(13).fillColor("#0f4c81").text("Project Overview", margin + 18, overviewTop + 16);
+  doc.font("Helvetica-Bold").fontSize(15).fillColor("#111827").text(projectName, margin + 18, overviewTop + 48, { width: contentWidth - 36 });
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Client ID: ${clientId}`, margin + 18, overviewTop + 82);
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Building Type: ${buildingType}`, margin + 18, overviewTop + 104);
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Report Date: ${formattedDate}`, margin + 18, overviewTop + 126);
+  doc.y = overviewTop + 160;
 
-  ensureSpace(doc, 120, 70);
+  beginSection(doc, 120, margin, contentWidth);
   const infoTop = doc.y;
-  doc.roundedRect(margin, infoTop, contentWidth, 120, 8).fillAndStroke("#f9fbfd", "#dbe3ea");
+  doc.roundedRect(margin, infoTop, contentWidth, 108, 8).fillAndStroke("#f9fbfd", "#dbe3ea");
   doc.font("Helvetica-Bold").fontSize(13).fillColor("#111827").text("Building Information", margin + 18, infoTop + 16);
-  doc.font("Helvetica").fontSize(11).fillColor("#374151");
-  doc.text(`Compliance Standard: ${complianceStandard}`, margin + 18, infoTop + 46);
-  doc.text(`Rules Configured: ${rulesConfigured.length > 0 ? rulesConfigured.join(", ") : "Not specified"}`, margin + 18, infoTop + 68);
-  doc.text(`Compliance Score: ${complianceScore}`, margin + 18, infoTop + 90);
-  doc.y = infoTop + 130;
-
-  drawFooter(doc, margin, contentWidth);
-
-  if (equipmentRows.length > 0 || reviewRows.length > 0 || ruleReferences.length > 0 || engineerRemarks) {
-    doc.addPage();
-    doc.y = 50;
-  }
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Compliance Standard: ${complianceStandard}`, margin + 18, infoTop + 46);
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Rules Configured: ${rulesConfigured.length > 0 ? rulesConfigured.join(", ") : "Not specified"}`, margin + 18, infoTop + 68);
+  doc.font("Helvetica").fontSize(11).fillColor("#374151").text(`Compliance Score: ${complianceScore}`, margin + 18, infoTop + 90);
+  doc.y = infoTop + 120;
 
   if (equipmentRows.length > 0) {
-    ensureSpace(doc, 70, 70);
+    beginSection(doc, 90, margin, contentWidth);
     doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827").text("Equipment Recommendations", margin, doc.y);
-    doc.moveDown(0.7);
-    drawTable(doc, ["Equipment", "Zone", "Quantity"], equipmentRows.map((row) => [row.name, row.zone, row.quantity]), [contentWidth * 0.6, contentWidth * 0.24, contentWidth * 0.16], {
-      margin,
-      contentWidth,
-      bottomPadding: 90,
-    });
+    doc.moveDown(0.5);
+    drawTable(
+      doc,
+      ["Equipment", "Zone", "Quantity"],
+      equipmentRows.map((row) => [formatEquipmentName(row.item || row.name), row.zone || "Not specified", row.qty ?? row.quantity ?? 0]),
+      [contentWidth * 0.60, contentWidth * 0.24, contentWidth * 0.16],
+      {
+        margin,
+        contentWidth,
+        bottomPadding: 70,
+      }
+    );
   }
 
   if (reviewRows.length > 0) {
-    ensureSpace(doc, 70, 70);
+    beginSection(doc, 90, margin, contentWidth);
     doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827").text("Review Flags", margin, doc.y);
-    doc.moveDown(0.7);
-    drawTable(doc, ["Severity", "Reason"], reviewRows.map((row) => [row.severity, row.reason]), [contentWidth * 0.22, contentWidth * 0.78], {
-      margin,
-      contentWidth,
-      bottomPadding: 90,
-    });
+    doc.moveDown(0.5);
+    drawTable(
+      doc,
+      ["Severity", "Reason"],
+      reviewRows.map((row) => [row.severity, row.reason]),
+      [contentWidth * 0.22, contentWidth * 0.78],
+      {
+        margin,
+        contentWidth,
+        bottomPadding: 70,
+      }
+    );
   } else {
-    ensureSpace(doc, 70, 70);
+    beginSection(doc, 70, margin, contentWidth);
     doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827").text("Review Flags", margin, doc.y);
-    doc.moveDown(0.7);
+    doc.moveDown(0.5);
     doc.font("Helvetica").fontSize(10).fillColor("#374151").text("No review flags detected.", margin, doc.y);
   }
 
   if (ruleReferences.length > 0) {
-    ensureSpace(doc, 70, 70);
+    beginSection(doc, 90, margin, contentWidth);
     doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827").text("Rule References", margin, doc.y);
-    doc.moveDown(0.7);
+    doc.moveDown(0.5);
 
     const groupedRuleReferences = new Map();
     ruleReferences.forEach((rule) => {
@@ -579,11 +554,11 @@ function writeFireSafetyAssessmentPdf(doc, report = {}) {
     });
 
     groupedRuleReferences.forEach((rules, equipmentName) => {
-      ensureSpace(doc, 24, 90);
+      beginSection(doc, 24, margin, contentWidth);
       doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827").text(equipmentName, margin + 8, doc.y);
       doc.moveDown(0.4);
       rules.forEach((rule) => {
-        ensureSpace(doc, 14, 90);
+        beginSection(doc, 14, margin, contentWidth);
         doc.font("Helvetica").fontSize(9).fillColor("#374151").text(`- ${rule.code || rule.reference || "Reference"}`, margin + 16, doc.y);
         doc.moveDown(0.25);
       });
@@ -591,18 +566,16 @@ function writeFireSafetyAssessmentPdf(doc, report = {}) {
   }
 
   if (engineerRemarks) {
-    ensureSpace(doc, 100, 70);
+    beginSection(doc, 120, margin, contentWidth);
     doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827").text("Engineer Remarks", margin, doc.y);
-    doc.moveDown(0.7);
-    const remarksHeight = 90;
-    ensureSpace(doc, remarksHeight, 70);
+    doc.moveDown(0.5);
     const remarksTop = doc.y;
-    doc.roundedRect(margin, remarksTop, contentWidth, remarksHeight, 6).fillAndStroke("#ffffff", "#dbe3ea");
+    doc.roundedRect(margin, remarksTop, contentWidth, 98, 6).fillAndStroke("#ffffff", "#dbe3ea");
     doc.font("Helvetica").fontSize(10).fillColor("#374151").text(engineerRemarks, margin + 12, remarksTop + 14, { width: contentWidth - 24, align: "left" });
-    doc.y = remarksTop + remarksHeight + 10;
+    doc.y = remarksTop + 108;
   }
 
-  drawFooter(doc, margin, contentWidth);
+  //renderFooters(doc, margin, contentWidth);
 }
 
 module.exports = {
