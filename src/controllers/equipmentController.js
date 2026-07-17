@@ -13,6 +13,9 @@ async function getEquipment(req, res) {
       data: equipment,
     });
   } catch (error) {
+    console.error("=== Equipment API Error ===");
+    console.error(error);
+    console.error("===========================");
     res.status(500).json({
       success: false,
       message: "Failed to fetch equipment",
@@ -46,6 +49,9 @@ async function createEquipment(req, res) {
       data: equipment,
     });
   } catch (error) {
+    console.error("=== Equipment API Error ===");
+    console.error(error);
+    console.error("===========================");
     res.status(500).json({
       success: false,
       message: "Failed to create equipment",
