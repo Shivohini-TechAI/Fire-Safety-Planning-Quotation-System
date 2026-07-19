@@ -2,8 +2,11 @@
 
 This document describes the backend APIs for the Fire Safety Planning Quotation System.
 
-Base URL:
+Base URLs:
+- Production (Render): https://fire-safety-planning-quotation-system-53kf.onrender.com
 - Local: http://localhost:5000
+
+Use the Render URL for teammate testing against the deployed branch, or use the local URL when running the backend on your machine.
 
 ## Overview
 
@@ -228,11 +231,13 @@ Request format:
 
 Example with curl:
 ```bash
-curl -X POST http://localhost:5000/api/uploaded-plans \
+curl -X POST https://fire-safety-planning-quotation-system-53kf.onrender.com/api/uploaded-plans \
   -F "planFile=@/path/to/plan.pdf" \
   -F "fileName=plan.pdf" \
   -F "quotationId=1"
 ```
+
+For local testing, replace the base URL with http://localhost:5000.
 
 Response example:
 ```json
@@ -316,18 +321,47 @@ Response example:
 
 ## 8. Suggested Testing Flow
 
-1. Start the server:
+### Quick deployment test (Render)
+
+1. Check the live health endpoint:
+```bash
+curl https://fire-safety-planning-quotation-system-53kf.onrender.com/
+```
+
+2. List equipment:
+```bash
+curl https://fire-safety-planning-quotation-system-53kf.onrender.com/api/equipment
+```
+
+3. Create an equipment item:
+```bash
+curl -X POST https://fire-safety-planning-quotation-system-53kf.onrender.com/api/equipment \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Smoke Detector","type":"Detection","price":1200,"quantity":10}'
+```
+
+4. Create a quotation preview:
+```bash
+curl -X POST https://fire-safety-planning-quotation-system-53kf.onrender.com/api/quotations/calculate \
+  -H "Content-Type: application/json" \
+  -d '{"projectName":"Office Building A","items":[{"equipmentId":1,"quantity":2}]}'
+```
+
+5. Create a real quotation:
+```bash
+curl -X POST https://fire-safety-planning-quotation-system-53kf.onrender.com/api/quotations \
+  -H "Content-Type: application/json" \
+  -d '{"projectName":"Office Building A","items":[{"equipmentId":1,"quantity":2}]}'
+```
+
+6. Download a quotation PDF:
+```bash
+curl -L https://fire-safety-planning-quotation-system-53kf.onrender.com/api/quotations/1/pdf -o quotation.pdf
+```
+
+### Local testing
+
 ```bash
 npm start
-```
-
-2. Check the health endpoint:
-```bash
 curl http://localhost:5000/
 ```
-
-3. Seed equipment via POST /api/equipment.
-
-4. Create a quotation via POST /api/quotations.
-
-5. Download the generated PDF via /api/quotations/:id/pdf.

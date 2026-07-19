@@ -4,7 +4,10 @@ info:
   version: 1.0.0
   description: Swagger-style API reference for the backend services.
 servers:
+  - url: https://fire-safety-planning-quotation-system-53kf.onrender.com
+    description: Render production
   - url: http://localhost:5000
+    description: Local development
 paths:
   /:
     get:
