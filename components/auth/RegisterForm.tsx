@@ -3,11 +3,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
-import { UserRole } from "@/types";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
+import { isAxiosError } from "axios";
 
 const schema = z.object({
   name:     z.string().min(2, "Name must be at least 2 characters"),
@@ -28,10 +28,8 @@ const strengthChecks = [
 ];
 
 export default function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
-  const { login } = useAuth();
-  const router = useRouter();
   const [showPass, setShowPass] = useState(false);
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { role: "engineer" },
   });
@@ -41,17 +39,29 @@ export default function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const strengthColor = ["bg-red-500","bg-orange-500","bg-amber-400","bg-green-500"][Math.max(0,passedChecks-1)] ?? "bg-[#1d3563]";
   const strengthLabel = ["","Weak","Fair","Good","Strong"][passedChecks] ?? "";
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      // TODO: POST /api/auth/register → { name, email, password, role }
-      await new Promise(r => setTimeout(r, 800));
-      login({ name: data.name, email: data.email, role: data.role as UserRole });
-      toast.success("Account created successfully!");
-      router.push("/dashboard");
-    } catch {
-      toast.error("Registration failed. Please try again.");
-    }
-  };
+  const signupMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const res = await api.post("/auth/signup", {
+        full_name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Account created! Please sign in.");
+      onSwitch();
+    },
+    onError: (err) => {
+      const message = isAxiosError(err)
+        ? err.response?.data?.message ?? "Registration failed. Please try again."
+        : "Registration failed. Please try again.";
+      toast.error(message);
+    },
+  });
+
+  const onSubmit = (data: FormData) => signupMutation.mutate(data);
 
   const inputBase = "w-full bg-[#0a1228] border rounded-lg px-4 py-3 text-sm text-white placeholder-[#5a6275] outline-none transition-all duration-200";
   const inputClass = (err?: boolean) =>
@@ -97,7 +107,6 @@ export default function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
             </button>
           </div>
 
-          {/* Strength bar */}
           {password.length > 0 && (
             <div className="mt-2">
               <div className="flex gap-1 mb-1.5">
@@ -120,9 +129,9 @@ export default function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           {errors.password && <p className="text-xs text-red-400 mt-1">⚠ {errors.password.message}</p>}
         </div>
 
-        <button type="submit" disabled={isSubmitting}
+        <button type="submit" disabled={signupMutation.isPending}
           className="w-full bg-[#ff7a1a] hover:bg-[#f06400] disabled:opacity-70 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 mt-2 text-sm shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2">
-          {isSubmitting ? <><Loader2 size={15} className="animate-spin"/> Creating…</> : "Create Account →"}
+          {signupMutation.isPending ? <><Loader2 size={15} className="animate-spin"/> Creating…</> : "Create Account →"}
         </button>
       </form>
 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Upload, Users, FileText, Settings, LogOut, Flame } from "lucide-react";
+import { LayoutDashboard, Upload, Users, FileText, Calculator, Settings, LogOut, Flame } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/upload",    icon: Upload,          label: "Upload BOQ" },
   { href: "/clients",   icon: Users,           label: "Clients" },
   { href: "/reports",   icon: FileText,        label: "Reports" },
+  { href: "/quotations",icon: Calculator,      label: "Quotations" },
   { href: "/settings",  icon: Settings,        label: "Settings" },
 ];
 

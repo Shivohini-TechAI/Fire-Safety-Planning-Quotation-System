@@ -10,7 +10,6 @@ interface DropZoneProps {
 export default function DropZone({ onFiles }: DropZoneProps) {
   const [pageDrag, setPageDrag] = useState(false);
 
-  // Highlight entire page on drag
   useEffect(() => {
     const enter = () => setPageDrag(true);
     const leave = (e: DragEvent) => { if (!e.relatedTarget) setPageDrag(false); };
@@ -33,11 +32,14 @@ export default function DropZone({ onFiles }: DropZoneProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "application/pdf": [".pdf"],
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
       "application/vnd.ms-excel": [".xls"],
       "text/csv": [".csv"],
     },
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 5 * 1024 * 1024,
     multiple: true,
   });
 
@@ -59,10 +61,10 @@ export default function DropZone({ onFiles }: DropZoneProps) {
           {active ? <Upload size={36} className="animate-bounce"/> : <FileSpreadsheet size={36}/>}
         </div>
         <p className="text-base font-semibold text-white mb-1">
-          {active ? "Release to upload!" : "Drag & drop BOQ files here"}
+          {active ? "Release to upload!" : "Drag & drop a plan or BOQ file here"}
         </p>
         <p className="text-sm text-[#707892]">
-          or <span className="text-[#ff9a4d]">click to browse</span> · Multiple files supported · .xlsx, .xls, .csv · Max 10 MB each
+          or <span className="text-[#ff9a4d]">click to browse</span> · Site plans (.png, .jpg, .pdf) or BOQ files (.xlsx, .csv) · Max 5 MB each
         </p>
       </div>
     </>

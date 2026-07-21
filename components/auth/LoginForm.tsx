@@ -3,10 +3,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import api, { setToken } from "@/lib/api";
+import { isAxiosError } from "axios";
 
 const schema = z.object({
   email:       z.string().email("Please enter a valid email"),
@@ -15,25 +18,39 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+interface LoginResponse {
+  token: string;
+  user: { id: number; full_name: string; email: string; role: string };
+}
+
 export default function LoginForm({ onSwitch, onForgot }: { onSwitch: () => void; onForgot: () => void }) {
   const { login } = useAuth();
   const router = useRouter();
   const [showPass, setShowPass] = useState(false);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      // TODO: POST /api/auth/login → { email, password } → receive JWT
-      await new Promise(r => setTimeout(r, 800));
-      login({ name: data.email.split("@")[0], email: data.email, role: "engineer" });
+  const loginMutation = useMutation({
+    mutationFn: async (data: FormData): Promise<LoginResponse> => {
+      const res = await api.post("/auth/login", { email: data.email, password: data.password });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setToken(data.token);
+      login({ id: data.user.id, name: data.user.full_name, email: data.user.email, role: data.user.role as any });
       toast.success("Signed in successfully!");
       router.push("/dashboard");
-    } catch {
-      toast.error("Invalid email or password.");
-    }
-  };
+    },
+    onError: (err) => {
+      const message = isAxiosError(err)
+        ? err.response?.data?.message ?? "Invalid email or password."
+        : "Something went wrong. Please try again.";
+      toast.error(message);
+    },
+  });
+
+  const onSubmit = (data: FormData) => loginMutation.mutate(data);
 
   const inputBase = "w-full bg-[#0a1228] border rounded-lg px-4 py-3.5 text-sm text-white placeholder-[#5a6275] outline-none transition-all duration-200";
   const inputClass = (err?: boolean) =>
@@ -76,9 +93,9 @@ export default function LoginForm({ onSwitch, onForgot }: { onSwitch: () => void
           <span className="text-xs text-[#98a0b3]">Remember me for 30 days</span>
         </label>
 
-        <button type="submit" disabled={isSubmitting}
+        <button type="submit" disabled={loginMutation.isPending}
           className="w-full bg-[#ff7a1a] hover:bg-[#f06400] disabled:opacity-70 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 mt-3 text-sm shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2">
-          {isSubmitting ? <><Loader2 size={15} className="animate-spin"/> Signing in…</> : "Sign In →"}
+          {loginMutation.isPending ? <><Loader2 size={15} className="animate-spin"/> Signing in…</> : "Sign In →"}
         </button>
       </form>
 
