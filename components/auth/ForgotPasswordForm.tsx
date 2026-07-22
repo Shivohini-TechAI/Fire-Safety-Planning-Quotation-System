@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Mail, CheckCircle, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
+import { useRequestPasswordReset } from "@/hooks/usePasswordReset";
 
 const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -12,19 +13,24 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
-  const [sent, setSent] = useState(false);
-  const { register, handleSubmit, getValues, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const requestReset = useRequestPasswordReset();
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async () => {
-    // TODO: POST /api/auth/forgot-password → { email }
-    await new Promise(r => setTimeout(r, 700));
-    setSent(true);
-    toast.success("Reset link sent!");
+  const onSubmit = (data: FormData) => {
+    requestReset.mutate(data.email, {
+      onSuccess: () => toast.success("Reset link sent!"),
+      onError: (err) => {
+        const message = isAxiosError(err)
+          ? err.response?.data?.message ?? "Failed to send reset link"
+          : "Failed to send reset link";
+        toast.error(message);
+      },
+    });
   };
 
-  if (sent) {
+  if (requestReset.isSuccess) {
     return (
       <div className="text-center py-4">
         <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-5">
@@ -33,7 +39,7 @@ export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
         <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Check your email</h2>
         <p className="text-sm text-[#98a0b3] mb-1">We sent a reset link to</p>
         <p className="text-sm text-[#ff9a4d] font-semibold mb-8">{getValues("email")}</p>
-        <p className="text-xs text-[#707892] mb-6">Didn&apos;t receive it? Check your spam folder or try again.</p>
+        <p className="text-xs text-[#707892] mb-6">Didn&apos;t receive it? Check your spam folder or try again. The link expires in 15 minutes.</p>
         <button onClick={onBack}
           className="flex items-center justify-center gap-2 w-full border border-[#1d3563] hover:border-[#ff7a1a]/40 text-[#98a0b3] hover:text-white text-sm font-semibold py-2.5 rounded-lg transition-all">
           <ArrowLeft size={14} /> Back to Sign In
@@ -61,9 +67,9 @@ export default function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           />
           {errors.email && <p className="text-xs text-red-400 mt-1.5">⚠ {errors.email.message}</p>}
         </div>
-        <button type="submit" disabled={isSubmitting}
+        <button type="submit" disabled={requestReset.isPending}
           className="w-full bg-[#ff7a1a] hover:bg-[#f06400] disabled:opacity-60 text-white font-semibold py-3.5 rounded-lg transition-all text-sm shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2">
-          {isSubmitting ? <><Loader2 size={15} className="animate-spin"/> Sending…</> : "Send Reset Link"}
+          {requestReset.isPending ? <><Loader2 size={15} className="animate-spin"/> Sending…</> : "Send Reset Link"}
         </button>
       </form>
 
