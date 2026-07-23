@@ -9,7 +9,9 @@ const {
     login,
     getProfile,
     updateProfile,
-    changePassword
+    changePassword,
+    forgotPassword,
+     resetPassword
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
@@ -66,6 +68,59 @@ router.post("/signup", signup);
  */
 
 router.post("/login", login);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Send password reset email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: gokul@example.com
+ *     responses:
+ *       200:
+ *         description: Password reset email sent successfully
+ *       404:
+ *         description: User not found
+ */
+
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset user password
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: abc123xyz
+ *               newPassword:
+ *                 type: string
+ *                 example: MyNewPassword@123
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid or expired reset token
+ */
+
+router.post("/reset-password", resetPassword);
 
 /**
  * @swagger
