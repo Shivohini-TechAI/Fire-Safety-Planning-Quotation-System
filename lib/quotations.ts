@@ -66,8 +66,9 @@ export async function createQuotation(
 
 export async function fetchQuotations(): Promise<Quotation[]> {
   const res = await quotationApi.get<ApiResponse<Quotation[]>>("/quotations");
-  return res.data.data;
+  return res.data?.data ?? [];
 }
+
 
 export function getQuotationPdfUrl(quotationId: number): string {
   return `${process.env.NEXT_PUBLIC_QUOTATION_API_BASE_URL}/quotations/${quotationId}/pdf`;
