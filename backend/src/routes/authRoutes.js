@@ -145,6 +145,17 @@ router.get("/profile", verifyToken, getProfile);
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               full_name:
+ *                 type: string
+ *               email:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Profile updated successfully
