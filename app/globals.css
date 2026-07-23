@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+:root {
+  --navy-950: #060b18;
+  --navy-900: #0a1228;
+  --navy-850: #0d1730;
+  --navy-800: #11203e;
+  --navy-700: #16294e;
+  --navy-600: #1d3563;
+  --orange-500: #ff7a1a;
+  --orange-600: #f06400;
+  --orange-400: #ff9a4d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--navy-950);
+  color: #eef0f4;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0a1228; }
+::-webkit-scrollbar-thumb { background: #1d3563; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #ff7a1a; }
+
+/* Smooth focus outlines */
+:focus-visible { outline: 2px solid #ff7a1a; outline-offset: 2px; }
+
+/* Responsive sidebar collapse at tablet */
+@media (max-width: 768px) {
+  .sidebar-collapse { display: none; }
+}
