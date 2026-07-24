@@ -1,6 +1,6 @@
 function formatCurrency(value) {
   const numericValue = Number(value ?? 0);
-  return `₹${numericValue.toFixed(2)}`;
+  return `Rs. ${numericValue.toFixed(2)}`;
 }
 
 function parseCurrency(value) {
@@ -9,7 +9,7 @@ function parseCurrency(value) {
   }
 
   if (typeof value === "string") {
-    const normalizedValue = value.replace(/[₹,]/g, "").trim();
+    const normalizedValue = value.replace(/[₹Rs.,]/gi, "").trim();
     return Number(normalizedValue) || 0;
   }
 
